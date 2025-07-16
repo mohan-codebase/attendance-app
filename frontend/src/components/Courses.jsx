@@ -40,7 +40,7 @@ const Courses = () => {
   useEffect(() => {
     const fetchAdmissions = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/admissions');
+        const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/admissions');
         const sorted = response.data.sort((a, b) => new Date(b.date) - new Date(a.date));
         setAdmissions(sorted);
         setLoading(false);
@@ -97,7 +97,7 @@ const Courses = () => {
 
   const handleDelete = async (admissionId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/admissions/${admissionId}`);
+      await axios.delete(`https://attendance-app-1-3e1n.onrender.com/api/admissions/${admissionId}`);
       setAdmissions(admissions.filter(admission => admission._id !== admissionId));
       setSuccessMessage('Admission deleted successfully!');
       setErrorMessage('');
@@ -119,7 +119,7 @@ const Courses = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/admissions/${editingAdmission}`, formData);
+      await axios.put(`https://attendance-app-1-3e1n.onrender.com/api/admissions/${editingAdmission}`, formData);
       setAdmissions(admissions.map(admission => 
         admission._id === editingAdmission ? { ...admission, ...formData } : admission
       ));

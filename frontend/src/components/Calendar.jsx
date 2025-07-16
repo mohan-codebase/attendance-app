@@ -37,7 +37,7 @@ const Calendar = () => {
     const fetchData = async () => {
       try {
         // Fetch events
-        const eventsResponse = await axios.get('http://localhost:5000/api/events');
+        const eventsResponse = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/events');
         const formattedEvents = eventsResponse.data.map(event => ({
           ...event,
           start: new Date(event.start),
@@ -47,7 +47,7 @@ const Calendar = () => {
         setEvents(formattedEvents);
 
         // Fetch batches and courses
-        const admissionsResponse = await axios.get('http://localhost:5000/api/admissions');
+        const admissionsResponse = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/admissions');
         const admissionsData = admissionsResponse.data;
         const uniqueBatches = [...new Set(admissionsData.map(item => item.batch))].filter(Boolean);
         const uniqueCourses = [...new Set(admissionsData.map(item => item.course))].filter(Boolean);
@@ -77,7 +77,7 @@ const Calendar = () => {
     showSuccess('Event created successfully!');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/events', newEvent);
+      const response = await axios.post('https://attendance-app-1-3e1n.onrender.com/api/events', newEvent);
       const createdEvent = {
         ...response.data,
         start: new Date(response.data.start),
@@ -97,7 +97,7 @@ const Calendar = () => {
     e.preventDefault();
     setShowForm(false);
     try {
-      const response = await axios.put(`http://localhost:5000/api/events/${editEvent.id}`, newEvent);
+      const response = await axios.put(`https://attendance-app-1-3e1n.onrender.com/api/events/${editEvent.id}`, newEvent);
       const updatedEvent = {
         ...response.data,
         start: new Date(response.data.start),
@@ -113,7 +113,7 @@ const Calendar = () => {
 
   const handleDeleteEvent = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/events/${id}`);
+      await axios.delete(`https://attendance-app-1-3e1n.onrender.com/api/events/${id}`);
       setEvents(events.filter(event => event.id !== id));
       showSuccess('Event deleted successfully!');
     } catch (error) {

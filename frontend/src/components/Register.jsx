@@ -109,7 +109,7 @@ const Register = () => {
     setLoading(true); // Start loading
 
     try {
-      const response = await axios.post('http://localhost:5000/api/users/register', {
+      const response = await axios.post('https://attendance-app-1-3e1n.onrender.com/api/users/register', {
         name,
         instituteName,
         email,

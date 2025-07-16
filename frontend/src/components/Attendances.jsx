@@ -23,7 +23,7 @@ const Attendances = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admissions'); // Adjust endpoint as needed
+      const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/admissions'); // Adjust endpoint as needed
       const data = response.data;
       setStudents(data);
       setFilteredStudents(data);
@@ -59,7 +59,7 @@ const Attendances = () => {
   useEffect(() => {
     const fetchAttendanceForDate = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/attendance');
+        const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/attendance');
         const attendanceRecordsForDate = response.data.filter(record => {
           const recordDate = moment(record.date).format('YYYY-MM-DD');
           return recordDate === moment(selectedDate).format('YYYY-MM-DD');
@@ -95,7 +95,7 @@ const Attendances = () => {
   const markAttendance = async (studentId, status) => {
     try {
       const attendanceData = { studentId, date: selectedDate, status };
-      await axios.post('http://localhost:5000/api/attendance', attendanceData);
+      await axios.post('https://attendance-app-1-3e1n.onrender.com/api/attendance', attendanceData);
       setMessage(`Attendance marked as ${status} on ${moment(selectedDate).format('YYYY-MM-DD')}`);
       
       // Remove the student from the filtered list after attendance is marked

@@ -112,7 +112,7 @@ const AddAdmission = () => {
 
     try {
       // Check for duplicate email or mobile
-      const checkResponse = await axios.post("http://localhost:5000/api/admissions/check", {
+      const checkResponse = await axios.post("https://attendance-app-1-3e1n.onrender.com/api/admissions/check", {
         email: formData.email,
         mobile: formData.mobile,
       });
@@ -124,7 +124,7 @@ const AddAdmission = () => {
       }
 
       // Submit admission form data
-      await axios.post("http://localhost:5000/api/admissions", formData);
+      await axios.post("https://attendance-app-1-3e1n.onrender.com/api/admissions", formData);
       setSuccessMessage("Admission submitted successfully!");
       setErrorMessage("");
       setFormData(initialFormData);

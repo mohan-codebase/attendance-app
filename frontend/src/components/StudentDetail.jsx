@@ -19,7 +19,7 @@ const StudentDetail = () => {
   useEffect(() => {
     const fetchStudentAttendance = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/attendance');
+        const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/attendance');
         // Filter attendance records for the given student
         const studentRecords = response.data.filter(
           att => att.studentId && att.studentId._id === studentId

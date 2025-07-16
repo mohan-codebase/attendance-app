@@ -87,7 +87,7 @@ const Login = ({ setIsAuthenticated }) => {
         setLoading(true); // Start loading
 
         try {
-            const response = await axios.post('http://localhost:5000/api/users/login', {
+            const response = await axios.post('https://attendance-app-1-3e1n.onrender.com/api/users/login', {
                 email,
                 password,
             });

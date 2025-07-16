@@ -30,7 +30,7 @@ const Report = () => {
   // Fetch Students Data
   const fetchStudents = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admissions');
+      const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/admissions');
       const data = response.data;
       setStudents(data);
       setFilteredStudents(data);
@@ -51,7 +51,7 @@ const Report = () => {
   // Fetch Attendance Data
   const fetchAttendance = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/attendance');
+      const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/attendance');
       const attendanceRecords = response.data;
 
       const statusObj = attendanceRecords.reduce((acc, record) => {
