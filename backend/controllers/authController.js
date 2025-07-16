@@ -43,17 +43,9 @@ const loginUser = async (req, res) => {
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
-        // Create a JWT token
-        const token = jwt.sign(
-            { userId: user._id, email: user.email },  // You can add more user information here if needed
-            process.env.JWT_SECRET,  // Ensure this is stored as an environment variable
-            { expiresIn: '1h' }  // Token expiration time
-        );
-
-        // Return the token and user data (excluding password)
+        // For testing: Do not generate JWT, just return user info
         res.json({
             message: 'Login successful',
-            token,
             user: { name: user.name, email: user.email, instituteName: user.instituteName }
         });
     } catch (err) {
