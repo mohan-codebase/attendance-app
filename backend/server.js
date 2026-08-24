@@ -4,14 +4,21 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const axios = require("axios");
 const userRoutes = require("./routes/userRoutes");
+const requireAuth = require("./middleware/auth");
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({ origin: process.env.CORS_ORIGIN }));
 app.use(express.json());
+
+// Public auth routes (register/login) must be mounted before the auth gate below
+app.use("/api/users", userRoutes);
+
+// Everything else under /api requires a valid token
+app.use("/api", requireAuth);
 
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -280,9 +287,6 @@ app.get('/api/user', async (req, res) => {
     res.status(500).json({ error: 'Error fetching user details' });
   }
 });
-
-// Use routes
-app.use("/api/users", userRoutes);
 
 // Global error handler middleware
 app.use((err, req, res, next) => {

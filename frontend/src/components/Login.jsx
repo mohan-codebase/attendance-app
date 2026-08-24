@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import Modal from './Model'; // Import the Modal component
 import Logo from '../img/logo.png'; // Logo
 import person1 from '../img/character-1.png'; // Person 1
@@ -87,7 +87,7 @@ const Login = ({ setIsAuthenticated }) => {
         setLoading(true); // Start loading
 
         try {
-            const response = await axios.post('https://attendance-app-1-3e1n.onrender.com/api/users/login', {
+            const response = await api.post('/api/users/login', {
                 email,
                 password,
             });

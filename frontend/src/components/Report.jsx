@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import moment from 'moment';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -30,7 +30,7 @@ const Report = () => {
   // Fetch Students Data
   const fetchStudents = async () => {
     try {
-      const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/admissions');
+      const response = await api.get('/api/admissions');
       const data = response.data;
       setStudents(data);
       setFilteredStudents(data);
@@ -51,7 +51,7 @@ const Report = () => {
   // Fetch Attendance Data
   const fetchAttendance = async () => {
     try {
-      const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/attendance');
+      const response = await api.get('/api/attendance');
       const attendanceRecords = response.data;
 
       const statusObj = attendanceRecords.reduce((acc, record) => {

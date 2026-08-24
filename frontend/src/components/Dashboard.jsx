@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../api';
 import moment from 'moment';
 import { Pie, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
@@ -38,7 +38,7 @@ const Dashboard = () => {
   // Fetch Admissions Data
   const fetchAdmissions = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admissions');
+      const response = await api.get('/api/admissions');
       setAdmissions(response.data);
     } catch (err) {
       console.error('Error fetching admissions data:', err);
@@ -51,7 +51,7 @@ const Dashboard = () => {
   // Fetch Attendance Data
   const fetchAttendance = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/attendance');
+      const response = await api.get('/api/attendance');
       setAttendance(response.data);
     } catch (err) {
       console.error('Error fetching attendance:', err);

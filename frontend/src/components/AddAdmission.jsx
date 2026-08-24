@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from '../api';
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -112,7 +112,7 @@ const AddAdmission = () => {
 
     try {
       // Check for duplicate email or mobile
-      const checkResponse = await axios.post("https://attendance-app-1-3e1n.onrender.com/api/admissions/check", {
+      const checkResponse = await api.post("/api/admissions/check", {
         email: formData.email,
         mobile: formData.mobile,
       });
@@ -124,7 +124,7 @@ const AddAdmission = () => {
       }
 
       // Submit admission form data
-      await axios.post("https://attendance-app-1-3e1n.onrender.com/api/admissions", formData);
+      await api.post("/api/admissions", formData);
       setSuccessMessage("Admission submitted successfully!");
       setErrorMessage("");
       setFormData(initialFormData);

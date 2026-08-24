@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { Pie } from 'react-chartjs-2';
@@ -19,7 +19,7 @@ const StudentDetail = () => {
   useEffect(() => {
     const fetchStudentAttendance = async () => {
       try {
-        const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/attendance');
+        const response = await api.get('/api/attendance');
         // Filter attendance records for the given student
         const studentRecords = response.data.filter(
           att => att.studentId && att.studentId._id === studentId

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import Modal from './Model'; // Import the Modal component
 import person1 from '../img/character-1.png'; // Person 1
 import person2 from '../img/character-2.png'; // Person 2
@@ -109,7 +109,7 @@ const Register = () => {
     setLoading(true); // Start loading
 
     try {
-      const response = await axios.post('https://attendance-app-1-3e1n.onrender.com/api/users/register', {
+      const response = await api.post('/api/users/register', {
         name,
         instituteName,
         email,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import moment from 'moment';
@@ -40,7 +40,7 @@ const Courses = () => {
   useEffect(() => {
     const fetchAdmissions = async () => {
       try {
-        const response = await axios.get('https://attendance-app-1-3e1n.onrender.com/api/admissions');
+        const response = await api.get('/api/admissions');
         const sorted = response.data.sort((a, b) => new Date(b.date) - new Date(a.date));
         setAdmissions(sorted);
         setLoading(false);
@@ -97,7 +97,7 @@ const Courses = () => {
 
   const handleDelete = async (admissionId) => {
     try {
-      await axios.delete(`https://attendance-app-1-3e1n.onrender.com/api/admissions/${admissionId}`);
+      await api.delete(`/api/admissions/${admissionId}`);
       setAdmissions(admissions.filter(admission => admission._id !== admissionId));
       setSuccessMessage('Admission deleted successfully!');
       setErrorMessage('');
@@ -119,7 +119,7 @@ const Courses = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`https://attendance-app-1-3e1n.onrender.com/api/admissions/${editingAdmission}`, formData);
+      await api.put(`/api/admissions/${editingAdmission}`, formData);
       setAdmissions(admissions.map(admission => 
         admission._id === editingAdmission ? { ...admission, ...formData } : admission
       ));

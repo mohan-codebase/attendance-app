@@ -43,9 +43,11 @@ const loginUser = async (req, res) => {
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
-        // For testing: Do not generate JWT, just return user info
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
         res.json({
             message: 'Login successful',
+            token,
             user: { name: user.name, email: user.email, instituteName: user.instituteName }
         });
     } catch (err) {
