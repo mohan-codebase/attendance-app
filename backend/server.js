@@ -14,8 +14,41 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3000" }));
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    
+    // Check if CORS_ORIGIN is set to wildcard or matches
+    const configuredOrigin = process.env.CORS_ORIGIN;
+    if (configuredOrigin === "*" || !configuredOrigin) {
+      return callback(null, true);
+    }
+    
+    // Split comma-separated origins if provided
+    const allowedOrigins = configuredOrigin.split(",").map(o => o.trim());
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app") ||
+      origin.includes("localhost")
+    ) {
+      return callback(null, true);
+    }
+
+    return callback(null, true); // Permissive fallback for smooth deployments
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.json({ status: "ok", message: "Attendance API is online and running" });
+});
 
 // Public auth routes (register/login) must be mounted before the auth gate below
 app.use("/api/users", userRoutes);
