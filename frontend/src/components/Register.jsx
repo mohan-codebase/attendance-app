@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import Modal from './Model'; // Import the Modal component
 import person1 from '../img/character-1.png'; // Person 1
@@ -8,6 +8,7 @@ import '../css/Register.css'; // Import the Register.css file
 import Vector from '../img/Vector.png';
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     instituteName: '',
@@ -128,7 +129,10 @@ const Register = () => {
       });
 
       setModal({ show: true, message: response.data.message });
-      setTimeout(() => setModal({ show: false, message: '' }), 2000); // Close modal after 2 seconds
+      setTimeout(() => {
+        setModal({ show: false, message: '' });
+        navigate('/Login');
+      }, 1500);
 
     } catch (error) {
       console.error(error);
