@@ -6,6 +6,7 @@ import moment from 'moment';
 import book from '../img/book 2.png';
 import bell from '../img/bell 1.png';
 import { Form } from 'react-bootstrap';
+import { COURSES } from '../constants/courses';
 import '../css/Courses.css';
 import Model from './Model';  // Importing our custom Modal
 
@@ -57,12 +58,7 @@ const Courses = () => {
   }, []);
 
   const groupByCourse = (admissions) => {
-    const courses = [
-      'Fullstack Development', 'UI/UX', 'Graphics Design', 'Creator Course',
-      'Digital Marketing', 'Web Design', 'Video Editing', 'Machine Learning', 'App Development'
-    ];
-    
-    return courses.reduce((groups, course) => {
+    return COURSES.reduce((groups, course) => {
       groups[course] = admissions.filter(admission => admission.course === course);
       return groups;
     }, {});

@@ -1,10 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import api from '../api';
-import "bootstrap/dist/css/bootstrap.min.css";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { Modal as BootstrapModal, Button } from "react-bootstrap";
+import { Modal as BootstrapModal } from "react-bootstrap";
+import { Search } from "lucide-react";
+import { COURSES } from '../constants/courses';
 import Model from "./Model";
+import "../css/Admission.css";
+
+const MODES = [
+  { value: "online", label: "Online" },
+  { value: "offline", label: "Offline" },
+];
+const BATCHES = ["9.30", "10.30", "11.30", "12.30", "1.30", "2.30", "4.30", "5.30"];
+const SLOTS = ["Morning", "Afternoon", "Evening"];
+const ATTEND_BY = [
+  { value: "self", label: "Self" },
+  { value: "guardian", label: "Guardian" },
+];
+const PLACEMENTS = ["Yes", "No"];
 
 const AddAdmission = () => {
   const initialFormData = {
@@ -21,7 +33,6 @@ const AddAdmission = () => {
     placement: "",
     attendBy: "",
     preferredSlot: "",
-    date: new Date(),
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -29,89 +40,61 @@ const AddAdmission = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
+  const [courseQuery, setCourseQuery] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // The "Search course" box narrows the course dropdown rather than being a
+  // field of its own — it is not submitted.
+  const visibleCourses = useMemo(
+    () => COURSES.filter((c) => c.toLowerCase().includes(courseQuery.trim().toLowerCase())),
+    [courseQuery]
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    // Clear error for the modified field
     setErrors({ ...errors, [name]: "" });
-  };
-
-  const handleDateChange = (date) => {
-    setFormData({ ...formData, date });
   };
 
   const validateForm = () => {
     const {
-      name,
-      mobile,
-      email,
-      qualification,
-      parentName,
-      parentMobile,
-      address,
-      course,
-      modeOfLearning,
-      batch,
-      attendBy,
-      preferredSlot,
-      placement,
+      name, mobile, email, qualification, parentName, parentMobile,
+      address, course, modeOfLearning, batch, attendBy, preferredSlot, placement,
     } = formData;
     const newErrors = {};
-
-    if (!name.trim()) {
-      newErrors.name = "Please enter the student's name!";
-    }
     const mobilePattern = /^\d{10}$/;
-    if (!mobilePattern.test(mobile)) {
-      newErrors.mobile = "Please enter a valid 10-digit mobile number!";
-    }
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-      newErrors.email = "Please enter a valid email address!";
-    }
-    if (!qualification.trim()) {
-      newErrors.qualification = "Please enter the student's qualification!";
-    }
-    if (!parentName.trim()) {
-      newErrors.parentName = "Please enter the parent's name!";
-    }
-    if (!mobilePattern.test(parentMobile)) {
-      newErrors.parentMobile = "Please enter a valid 10-digit mobile number!";
-    }
-    if (!address.trim()) {
-      newErrors.address = "Please enter the student's address!";
-    }
-    if (!course) {
-      newErrors.course = "Please select a course!";
-    }
-    if (!modeOfLearning) {
-      newErrors.modeOfLearning = "Please select a mode of learning!";
-    }
-    if (!batch) {
-      newErrors.batch = "Please select a batch!";
-    }
-    if (!attendBy) {
-      newErrors.attendBy = "Please select who is attending!";
-    }
-    if (!preferredSlot) {
-      newErrors.preferredSlot = "Please select a preferred slot!";
-    }
-    if (!placement) {
-      newErrors.placement = "Please select a placement option!";
-    }
+
+    if (!name.trim()) newErrors.name = "Please enter the student's name!";
+    if (!mobilePattern.test(mobile)) newErrors.mobile = "Enter a valid 10-digit mobile number!";
+    if (!emailPattern.test(email)) newErrors.email = "Enter a valid email address!";
+    if (!qualification.trim()) newErrors.qualification = "Please enter the qualification!";
+    if (!parentName.trim()) newErrors.parentName = "Please enter the parent's name!";
+    if (!mobilePattern.test(parentMobile)) newErrors.parentMobile = "Enter a valid 10-digit mobile number!";
+    if (!address.trim()) newErrors.address = "Please enter the address!";
+    if (!course) newErrors.course = "Please select a course!";
+    if (!modeOfLearning) newErrors.modeOfLearning = "Please select a mode of learning!";
+    if (!batch) newErrors.batch = "Please select a batch!";
+    if (!attendBy) newErrors.attendBy = "Please select who is attending!";
+    if (!preferredSlot) newErrors.preferredSlot = "Please select a preferred slot!";
+    if (!placement) newErrors.placement = "Please select a placement option!";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const closeForm = () => {
+    setShowForm(false);
+    setErrors({});
+    setCourseQuery("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
+    setSubmitting(true);
     try {
-      // Check for duplicate email or mobile
       const checkResponse = await api.post("/api/admissions/check", {
         email: formData.email,
         mobile: formData.mobile,
@@ -123,317 +106,149 @@ const AddAdmission = () => {
         return;
       }
 
-      // Submit admission form data
       await api.post("/api/admissions", formData);
       setSuccessMessage("Admission submitted successfully!");
       setErrorMessage("");
       setFormData(initialFormData);
-
-      // Close the form modal immediately after submission
-      setTimeout(() => {
-        setShowForm(false);
-      }, 0.1);
+      closeForm();
     } catch (error) {
       console.error(error);
       setErrorMessage(
         error.response?.data?.message || "Error submitting admission form."
       );
       setSuccessMessage("");
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  // One field: label, control, and its validation message.
+  const Field = ({ label, name, span, children }) => (
+    <div className={`adm-field ${span ? "adm-field--full" : ""}`}>
+      <label className="adm-label" htmlFor={name}>{label}</label>
+      {children}
+      {errors[name] && <p className="adm-error">{errors[name]}</p>}
+    </div>
+  );
+
+  const input = (name, placeholder, type = "text") => (
+    <input
+      id={name}
+      type={type}
+      name={name}
+      placeholder={placeholder}
+      value={formData[name]}
+      onChange={handleChange}
+      className={`adm-input ${errors[name] ? "is-invalid" : ""}`}
+    />
+  );
+
+  const select = (name, placeholder, options) => (
+    <select
+      id={name}
+      name={name}
+      value={formData[name]}
+      onChange={handleChange}
+      className={`adm-input adm-select ${errors[name] ? "is-invalid" : ""}`}
+    >
+      <option value="">{placeholder}</option>
+      {options.map((opt) => {
+        const value = typeof opt === "string" ? opt : opt.value;
+        const label = typeof opt === "string" ? opt : opt.label;
+        return <option key={value} value={value}>{label}</option>;
+      })}
+    </select>
+  );
+
   return (
-    <div className="container mt-4">
-      <h2 className="mb-3 text-center">Add Admission</h2>
-      <div className="d-flex justify-content-center mb-3">
-        <button className="btn btn-secondary btn-sm" onClick={() => setShowForm(true)}>
-          Add Admission
-        </button>
-      </div>
-      
-      {/* Form Modal */}
-      <BootstrapModal show={showForm} onHide={() => setShowForm(false)} centered>
-        <BootstrapModal.Header closeButton className="bg-color">
-          <BootstrapModal.Title>Add Admission</BootstrapModal.Title>
-        </BootstrapModal.Header>
-        <BootstrapModal.Body>
-          <form onSubmit={handleSubmit} noValidate>
-            <div className="row g-3">
-              {/* Name Field */}
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Enter student name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                />
-                {errors.name && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.name}
-                  </div>
-                )}
-              </div>
+    <div className="adm-page">
+      <h2 className="adm-page-title">Add Admission</h2>
+      <button className="adm-open-btn" onClick={() => setShowForm(true)}>
+        Add Admission
+      </button>
 
-              {/* Mobile Field */}
-              <div className="col-md-6">
-                <input
-                  type="tel"
-                  name="mobile"
-                  placeholder="Enter student mobile no"
-                  value={formData.mobile}
-                  onChange={handleChange}
-                  className={`form-control ${errors.mobile ? "is-invalid" : ""}`}
-                />
-                {errors.mobile && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.mobile}
-                  </div>
-                )}
-              </div>
+      <BootstrapModal
+        show={showForm}
+        onHide={closeForm}
+        centered
+        size="lg"
+        dialogClassName="adm-dialog"
+        contentClassName="adm-content"
+      >
+        {/* Cover banner */}
+        <div className="adm-cover" role="presentation" />
 
-              {/* Email Field */}
-              <div className="col-md-6">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Enter student email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                />
-                {errors.email && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.email}
-                  </div>
-                )}
-              </div>
+        <form className="adm-body" onSubmit={handleSubmit} noValidate>
+          {errorMessage && <p className="adm-alert">{errorMessage}</p>}
 
-              {/* Qualification Field */}
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  name="qualification"
-                  placeholder="Enter student qualification"
-                  value={formData.qualification}
-                  onChange={handleChange}
-                  className={`form-control ${errors.qualification ? "is-invalid" : ""}`}
-                />
-                {errors.qualification && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.qualification}
-                  </div>
-                )}
-              </div>
+          <div className="adm-grid">
+            <Field label="Name" name="name">{input("name", "Enter student name")}</Field>
+            <Field label="Mobile no" name="mobile">{input("mobile", "Enter Student mobile no")}</Field>
 
-              {/* Parent Name Field */}
-              <div className="col-md-6">
-                <input
-                  type="text"
-                  name="parentName"
-                  placeholder="Enter student parent's name"
-                  value={formData.parentName}
-                  onChange={handleChange}
-                  className={`form-control ${errors.parentName ? "is-invalid" : ""}`}
-                />
-                {errors.parentName && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.parentName}
-                  </div>
-                )}
-              </div>
+            <Field label="Email" name="email">{input("email", "Enter student email", "email")}</Field>
+            <Field label="Qualification" name="qualification">
+              {input("qualification", "Enter student qualification")}
+            </Field>
 
-              {/* Parent Mobile Field */}
-              <div className="col-md-6">
-                <input
-                  type="tel"
-                  name="parentMobile"
-                  placeholder="Enter student parent's mobile no"
-                  value={formData.parentMobile}
-                  onChange={handleChange}
-                  className={`form-control ${errors.parentMobile ? "is-invalid" : ""}`}
-                />
-                {errors.parentMobile && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.parentMobile}
-                  </div>
-                )}
-              </div>
+            <Field label="Parent name" name="parentName">
+              {input("parentName", "Enter student parent's name")}
+            </Field>
+            <Field label="Parent mobile no" name="parentMobile">
+              {input("parentMobile", "Enter student parent's no")}
+            </Field>
 
-              {/* Address Field */}
-              <div className="col-12">
-                <input
-                  type="text"
-                  name="address"
-                  placeholder="Enter student address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  className={`form-control ${errors.address ? "is-invalid" : ""}`}
-                />
-                {errors.address && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.address}
-                  </div>
-                )}
-              </div>
+            <Field label="Address" name="address" span>
+              {input("address", "Enter student address")}
+            </Field>
 
-              {/* Course Field */}
-              <div className="col-md-6">
-                <select
-                  name="course"
-                  value={formData.course}
-                  onChange={handleChange}
-                  className={`form-select ${errors.course ? "is-invalid" : ""}`}
-                >
-                  <option value="">Select course</option>
-                  <option value="Fullstack Development">Fullstack Development</option>
-                  <option value="UI/UX">UI/UX</option>
-                  <option value="Graphics Design">Graphics Design</option>
-                  <option value="Creator Course">Creator Course</option>
-                  <option value="Digital Marketing">Digital Marketing</option>
-                  <option value="Web Design">Web Design</option>
-                  <option value="Video Editing">Video Editing</option>
-                  <option value="Machine Learning">Machine Learning</option>
-                  <option value="App Development">App Development</option>
-                </select>
-                {errors.course && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.course}
-                  </div>
-                )}
+            {/* Course: the dropdown plus a box that filters its options */}
+            <div className="adm-field adm-field--full">
+              <label className="adm-label" htmlFor="course">Course</label>
+              <div className="adm-course-row">
+                {select("course", "Select course", visibleCourses)}
+                <div className="adm-search">
+                  <input
+                    type="text"
+                    value={courseQuery}
+                    onChange={(e) => setCourseQuery(e.target.value)}
+                    placeholder="Search course"
+                    aria-label="Filter the course list"
+                  />
+                  <Search size={16} strokeWidth={1.75} />
+                </div>
               </div>
-
-              {/* Mode of Learning Field */}
-              <div className="col-md-6">
-                <select
-                  name="modeOfLearning"
-                  value={formData.modeOfLearning}
-                  onChange={handleChange}
-                  className={`form-select ${errors.modeOfLearning ? "is-invalid" : ""}`}
-                >
-                  <option value="">Select mode</option>
-                  <option value="online">Online</option>
-                  <option value="offline">Offline</option>
-                </select>
-                {errors.modeOfLearning && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.modeOfLearning}
-                  </div>
-                )}
-              </div>
-
-              {/* Batch Field */}
-              <div className="col-md-6">
-                <select
-                  name="batch"
-                  value={formData.batch}
-                  onChange={handleChange}
-                  className={`form-select ${errors.batch ? "is-invalid" : ""}`}
-                >
-                  <option value="">Select batch</option>
-                  <option value="9.30">9.30</option>
-                  <option value="4.30">4.30</option>
-                  <option value="12.30">12.30</option>
-                  <option value="2.30">2.30</option>
-                  <option value="5.30">5.30</option>
-                  <option value="1.30">1.30</option>
-                </select>
-                {errors.batch && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.batch}
-                  </div>
-                )}
-              </div>
-
-              {/* AttendBy Field */}
-              <div className="col-md-6">
-                <select
-                  name="attendBy"
-                  value={formData.attendBy}
-                  onChange={handleChange}
-                  className={`form-select ${errors.attendBy ? "is-invalid" : ""}`}
-                >
-                  <option value="">AttendBy</option>
-                  <option value="self">Self</option>
-                  <option value="guardian">Guardian</option>
-                </select>
-                {errors.attendBy && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.attendBy}
-                  </div>
-                )}
-              </div>
-
-              {/* Preferred Slot Field */}
-              <div className="col-md-6">
-                <select
-                  name="preferredSlot"
-                  value={formData.preferredSlot}
-                  onChange={handleChange}
-                  className={`form-select ${errors.preferredSlot ? "is-invalid" : ""}`}
-                >
-                  <option value="">Select preferred slot</option>
-                  <option value="Morning">Morning</option>
-                  <option value="Afternoon">Afternoon</option>
-                  <option value="Evening">Evening</option>
-                </select>
-                {errors.preferredSlot && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.preferredSlot}
-                  </div>
-                )}
-              </div>
-
-              {/* Placement Field */}
-              <div className="col-md-6">
-                <select
-                  name="placement"
-                  value={formData.placement}
-                  onChange={handleChange}
-                  className={`form-select ${errors.placement ? "is-invalid" : ""}`}
-                >
-                  <option value="">Select placement option</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-                {errors.placement && (
-                  <div className="text-danger text-start mt-1" style={{ fontSize: "0.875rem" }}>
-                    {errors.placement}
-                  </div>
-                )}
-              </div>
-
-              {/* Date Field */}
-              <div className="col-md-6">
-                <label htmlFor="date" className="form-label">Select Date:</label>
-                <DatePicker
-                  selected={formData.date}
-                  onChange={handleDateChange}
-                  dateFormat="dd/MM/yyyy"
-                  className="form-control"
-                />
-              </div>
+              {errors.course && <p className="adm-error">{errors.course}</p>}
             </div>
-            <div className="text-center mt-4">
-              <button type="submit" className="btn button-color px-5 py-2">
-                Submit Admission
-              </button>
-            </div>
-          </form>
-        </BootstrapModal.Body>
+
+            <Field label="Mode of learning" name="modeOfLearning">
+              {select("modeOfLearning", "Select mode", MODES)}
+            </Field>
+            <Field label="Preferred slot" name="preferredSlot">
+              {select("preferredSlot", "Select slot", SLOTS)}
+            </Field>
+
+            <Field label="Placement" name="placement">
+              {select("placement", "Select", PLACEMENTS)}
+            </Field>
+            <Field label="Attend by" name="attendBy">
+              {select("attendBy", "Select", ATTEND_BY)}
+            </Field>
+
+            <Field label="Batch" name="batch">
+              {select("batch", "Select batch", BATCHES)}
+            </Field>
+          </div>
+
+          <button type="submit" className="adm-submit" disabled={submitting}>
+            {submitting ? "Submitting…" : "Submit admission"}
+          </button>
+        </form>
       </BootstrapModal>
 
-      {/* Custom pop-up using Model component */}
       <Model
-        show={!!successMessage}
+        show={Boolean(successMessage)}
         message={successMessage}
-        onClose={() => setSuccessMessage('')}
-      />
-      <Model
-        show={!!errorMessage}
-        message={errorMessage}
-        onClose={() => setErrorMessage('')}
+        onClose={() => setSuccessMessage("")}
       />
     </div>
   );

@@ -18,7 +18,7 @@
     font-family: Merriweather;
     font-size: 25px;
     font-weight: 700;
-    color: #353537;
+    color: var(--text-color);
     margin-left: 10px;
 }
 

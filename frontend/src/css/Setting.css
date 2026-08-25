@@ -19,7 +19,7 @@
     font-family: Merriweather;
     font-size: 25px;
     font-weight: 700;
-    color: #353537;
+    color: var(--text-color);
     margin-left: 60px;
     margin-top: -35px;
 }
@@ -27,7 +27,7 @@
   font-family: "Roboto", sans-serif;
   margin-top: 50px;
   font-weight: 700;
-  color: #353537;
+  color: var(--text-color);
   letter-spacing: 1px;
 
 }
@@ -37,9 +37,9 @@
   color: #353537; */
   font-family: "Lato", sans-serif;
   font-weight: 500;
-  
-  color: #353537;
- 
+
+  color: var(--text-muted-color);
+
 }
 .student{
   width: 450px;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { Chart as ChartJS } from 'chart.js';
 import Sidebar from './components/Sidebar';
 import Settings from './components/Settings';
 import Courses from './components/Courses';
@@ -17,7 +18,9 @@ import './App.css';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [theme, setTheme] = useState('system'); // Default to system preference
+  // Restore the saved choice; Settings writes it as 'preferredTheme'.
+  // Without this the theme silently resets to 'system' on every reload.
+  const [theme, setTheme] = useState(() => localStorage.getItem('preferredTheme') || 'system');
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -34,6 +37,14 @@ const App = () => {
       } else {
         document.documentElement.removeAttribute('data-theme');
       }
+
+      // Chart.js paints to canvas and cannot read CSS variables, so its axis
+      // labels, legend and grid lines have to be told the theme explicitly.
+      const dark = theme === 'dark';
+      ChartJS.defaults.color = dark ? '#c9ced4' : '#495057';
+      ChartJS.defaults.borderColor = dark
+        ? 'rgba(255, 255, 255, 0.12)'
+        : 'rgba(0, 0, 0, 0.1)';
     };
 
     // Listen for system theme changes
@@ -72,7 +83,7 @@ const App = () => {
             <Route path="/add-admission" element={isAuthenticated ? <AddAdmission /> : <Navigate to="/login" />} />
             <Route path="/help" element={<Help />} />
             <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />
             <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
           </Routes>
         </div>

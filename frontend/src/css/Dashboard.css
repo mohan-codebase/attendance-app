@@ -1,83 +1,473 @@
-.dashboard-cards {
-    background-image: url('../img/dashboard.png');
-    background-size: cover;
-    background-repeat: no-repeat;
-    height: 250px;
-    width: 100%;
-    border-radius: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end; /* Align items to the bottom */
-    margin-bottom: 1rem;
-    padding: 10px; /* Add padding to create space around the cards */
-    position: relative; /* Make the container position relative */
+/* ===========================
+   Dashboard
+   =========================== */
+
+.dash {
+  max-width: 1180px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 4px 4px 40px;
+}
+
+.dash-state {
+  padding: 40px;
+  color: var(--text-muted-color);
+}
+
+.dash-error {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: rgba(220, 53, 69, 0.12);
+  color: #dc3545;
+  font-size: 14px;
+}
+
+/* --- Header --- */
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.dash-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-color);
+}
+
+.dash-title h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.dash-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dash-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 250px;
+  max-width: 42vw;
+  padding: 9px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--surface-color);
+  color: var(--text-muted-color);
+  transition: border-color 0.2s ease;
+}
+
+.dash-search:focus-within {
+  border-color: var(--input-focus-border-color);
+}
+
+.dash-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 14px;
+}
+
+.dash-bell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dash-bell:hover {
+  background-color: var(--day-hover-background-color);
+}
+
+/* --- Hero --- */
+.dash-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 28px 30px 30px;
+  margin-bottom: 22px;
+  background-image: url('../img/dashboard.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.dash-hero-copy h2 {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  /* The artwork behind is light in both themes, so this text stays dark */
+  color: #1c1d21;
+}
+
+.dash-hero-copy p {
+  margin: 0 0 22px;
+  font-size: 14px;
+  color: #4a4c53;
+}
+
+.dash-course-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.dash-course-row::-webkit-scrollbar {
+  display: none;
+}
+
+.dash-course-card {
+  /* Fixed width so one course doesn't stretch across the whole hero */
+  flex: 0 0 212px;
+  min-width: 212px;
+  padding: 18px 20px 20px;
+  border-radius: 14px;
+  background-color: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 10px rgba(20, 20, 40, 0.06);
+}
+
+.dash-course-card h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #33353a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-course-card p {
+  margin: 0;
+  font-size: 15px;
+  color: #4a4c53;
+}
+
+.dash-course-count {
+  font-size: 30px;
+  font-weight: 700;
+  color: #1c1d21;
+  margin-right: 6px;
+}
+
+/* --- Panels --- */
+.dash-panels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.dash-panel {
+  padding: 22px 24px 24px;
+  border-radius: 18px;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(20, 20, 40, 0.04);
+}
+
+.dash-panel-title {
+  margin: 0 0 18px;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-color);
+}
+
+/* Day wise summary */
+.dash-donut-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.dash-donut {
+  position: relative;
+  width: 158px;
+  height: 158px;
+  flex-shrink: 0;
+}
+
+.dash-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.dash-legend li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.dash-legend strong {
+  display: block;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-color);
+  line-height: 1.2;
+}
+
+.dash-legend span:not(.dash-dot) {
+  font-size: 14px;
+  color: var(--text-muted-color);
+}
+
+.dash-dot {
+  width: 9px;
+  height: 9px;
+  margin-top: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1.5px solid transparent;
+}
+
+.dash-dot--present {
+  border-color: var(--primary-color);
+}
+
+.dash-dot--absent {
+  border-color: var(--text-muted-color);
+}
+
+/* Weekly summary */
+.dash-bars {
+  height: 190px;
+}
+
+/* Upcoming class */
+.dash-upcoming {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+}
+
+.dash-upcoming li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.dash-ring {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid #22c55e;
+  flex-shrink: 0;
+}
+
+.dash-empty {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-muted-color);
+  text-align: center;
+}
+
+/* --- Top students --- */
+.dash-top {
+  margin-top: 18px;
+  border-radius: 18px;
+  overflow: hidden;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(20, 20, 40, 0.04);
+}
+
+.dash-top-header {
+  padding: 13px 24px;
+  background-color: var(--primary-color);
+}
+
+.dash-top-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-text-color);
+}
+
+/* Wide tables scroll inside their own container rather than the page */
+.dash-table-scroll {
+  overflow-x: auto;
+}
+
+.dash-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+}
+
+.dash-table th,
+.dash-table td {
+  padding: 14px 16px;
+  text-align: center;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.dash-table th {
+  font-weight: 400;
+  color: var(--text-muted-color);
+}
+
+.dash-table td {
+  color: var(--text-color);
+  border-top: 1px solid var(--border-subtle-color);
+}
+
+.dash-table .dash-col-no {
+  text-align: left;
+  padding-left: 28px;
+  width: 12%;
+}
+
+.dash-table tbody tr:hover td {
+  background-color: var(--day-hover-background-color);
+}
+
+.dash-pct {
+  font-weight: 500;
+}
+
+.dash-pct.is-high {
+  color: #22c55e;
+}
+
+.dash-pct.is-mid {
+  color: #d97706;
+}
+
+.dash-pct.is-low {
+  color: var(--text-muted-color);
+}
+
+.dash-table-empty {
+  color: var(--text-muted-color);
+  padding: 26px 16px;
+}
+
+/* --- Search results --- */
+.dash-search-results {
+  margin-bottom: 22px;
+}
+
+.dash-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--text-color);
+}
+
+.dash-result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.dash-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  text-align: left;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.dash-result-card:hover {
+  border-color: var(--primary-color);
+}
+
+.dash-result-card span {
+  font-size: 13px;
+  color: var(--text-muted-color);
+}
+
+/* --- Student detail --- */
+.dash-back {
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dash-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.dash-detail-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dash-detail-list span {
+  font-size: 12px;
+  color: var(--text-muted-color);
+}
+
+/* --- Responsive --- */
+@media (max-width: 1100px) {
+  .dash-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  
-  .dashboard-card {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1 1 20%; /* Make the cards smaller */
-    margin: 0 5px;
-    background-color: var(--card-background-color);
-    color: var(--card-text-color);
-    border-radius: 15px;
-    padding: 10px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    opacity: 0.75;
+}
+
+@media (max-width: 760px) {
+  .dash-panels {
+    grid-template-columns: minmax(0, 1fr);
   }
-  
-  .dashboard-cards-1 {
-    border-radius: 15px;
-    top: 30px;
-    width: 100%;
+
+  .dash-hero {
+    padding: 22px 18px 24px;
   }
-  
-  .dashboard-card-content {
-    padding: 10px;
+
+  .dash-hero-copy h2 {
+    font-size: 23px;
   }
-  
-  .dashboard-card h5 {
-    margin-bottom: 5px;
+
+  .dash-search {
+    width: 170px;
   }
-  
-  .dashboard-card p {
-    margin: 0;
-  }
-  
-  .dashboard-cards-header {
-    position: absolute;
-    top: 40px;
-    left: 52%;
-    transform: translateX(-50%);
-    text-align: start;
-    width: 100%;
-    color: rgb(0, 0, 0); /* Ensure the text is visible on the background image */
-  }
-  
-  /* Media Queries for Responsiveness */
-  @media (max-width: 1200px) {
-    .dashboard-card {
-      flex: 1 1 22%;
-    }
-  }
-  
-  @media (max-width: 992px) {
-    .dashboard-card {
-      flex: 1 1 30%;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .dashboard-card {
-      flex: 1 1 45%;
-    }
-  }
-  
-  @media (max-width: 576px) {
-    .dashboard-card {
-      flex: 1 1 100%;
-      margin-bottom: 10px;
-    }
-  }
+}

@@ -1,0 +1,250 @@
+/* ===========================
+   Add Admission
+   =========================== */
+
+/* The modal is a dark charcoal sheet in both themes, as designed — it reads as
+   a raised surface over the light page and over the dark one. */
+.adm-surface {
+  --adm-surface: #3d3f42;
+  --adm-input: #313336;
+  --adm-border: #4c4f53;
+  --adm-text: #f2f3f4;
+  --adm-muted: #9ea3a9;
+}
+
+.adm-page {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.adm-page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 18px;
+}
+
+.adm-open-btn {
+  padding: 11px 26px;
+  border: none;
+  border-radius: 10px;
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.adm-open-btn:hover {
+  background-color: var(--button-hover-background-color);
+}
+
+/* --- Modal shell --- */
+.adm-dialog {
+  max-width: 620px;
+}
+
+/* contentClassName target — overrides Bootstrap's .modal-content */
+.modal-content.adm-content {
+  --adm-surface: #3d3f42;
+  --adm-input: #313336;
+  --adm-border: #4c4f53;
+  --adm-text: #f2f3f4;
+  --adm-muted: #9ea3a9;
+
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: var(--adm-surface);
+  color: var(--adm-text);
+  /* The form is taller than a short viewport, so scroll inside the sheet
+     rather than letting the submit button fall off the screen. */
+  max-height: 92vh;
+}
+
+/* --- Cover banner --- */
+/* Stand-in for the cloud artwork: layered soft puffs over a purple sky.
+   Swap in a real image with `background-image: url(...)` when you have one. */
+.adm-cover {
+  height: 132px;
+  background-image:
+    radial-gradient(ellipse 13% 30% at 12% 82%, #ffffff 0%, #ffffff 48%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(ellipse 17% 38% at 24% 90%, #ffffff 0%, #ffffff 52%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(ellipse 11% 26% at 36% 78%, #ffffff 0%, #ffffff 46%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(ellipse 19% 40% at 50% 92%, #ffffff 0%, #ffffff 54%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(ellipse 12% 28% at 63% 80%, #ffffff 0%, #ffffff 48%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(ellipse 16% 36% at 76% 90%, #ffffff 0%, #ffffff 52%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(ellipse 10% 24% at 88% 76%, #ffffff 0%, #ffffff 46%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(ellipse 15% 34% at 97% 88%, #ffffff 0%, #ffffff 50%, rgba(255, 255, 255, 0) 74%),
+    linear-gradient(180deg, #9866cf 0%, #b184dd 34%, #cfa9ea 62%, #e8d4f4 100%);
+  flex-shrink: 0;
+}
+
+/* --- Body --- */
+.adm-body {
+  padding: 24px 30px 30px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.adm-alert {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background-color: rgba(229, 72, 77, 0.16);
+  color: #ff8f93;
+  font-size: 13px;
+}
+
+.adm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+  row-gap: 16px;
+}
+
+.adm-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.adm-field--full {
+  grid-column: 1 / -1;
+}
+
+.adm-label {
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--adm-text);
+}
+
+.adm-input {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1px solid var(--adm-border);
+  border-radius: 8px;
+  background-color: var(--adm-input);
+  color: var(--adm-text);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.adm-input::placeholder {
+  color: var(--adm-muted);
+}
+
+.adm-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(164, 94, 229, 0.25);
+}
+
+.adm-input.is-invalid {
+  border-color: #e5484d;
+}
+
+/* Native select arrow replaced so it matches the dark sheet */
+.adm-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ea3a9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+.adm-select option {
+  background-color: var(--adm-input);
+  color: var(--adm-text);
+}
+
+.adm-error {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #ff8f93;
+}
+
+/* --- Course row: select + filter box --- */
+.adm-course-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.adm-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.adm-search input {
+  width: 100%;
+  padding: 10px 38px 10px 13px;
+  border: 1px solid var(--adm-border);
+  border-radius: 8px;
+  background-color: var(--adm-input);
+  color: var(--adm-text);
+  font-size: 13.5px;
+  outline: none;
+}
+
+.adm-search input::placeholder {
+  color: var(--adm-muted);
+}
+
+.adm-search input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(164, 94, 229, 0.25);
+}
+
+.adm-search svg {
+  position: absolute;
+  right: 12px;
+  color: var(--adm-muted);
+  pointer-events: none;
+}
+
+/* --- Submit --- */
+.adm-submit {
+  display: block;
+  width: 100%;
+  max-width: 268px;
+  margin: 26px auto 0;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 9px;
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.adm-submit:hover:not(:disabled) {
+  background-color: var(--button-hover-background-color);
+}
+
+.adm-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* --- Responsive --- */
+@media (max-width: 620px) {
+  .adm-grid,
+  .adm-course-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .adm-body {
+    padding: 20px 18px 24px;
+  }
+
+  .adm-cover {
+    height: 104px;
+  }
+}

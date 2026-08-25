@@ -1,0 +1,434 @@
+/* ===========================
+   Report / Student Performance
+   =========================== */
+
+.rep {
+  max-width: 1180px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 4px 4px 40px;
+}
+
+.rep-state {
+  padding: 40px;
+  color: var(--text-muted-color);
+}
+
+.rep-state--error {
+  color: #e5484d;
+}
+
+.rep-heading {
+  margin: 0 0 20px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+/* --- Per-course cards --- */
+.rep-cards {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 20px;
+  scrollbar-width: none;
+}
+
+.rep-cards::-webkit-scrollbar {
+  display: none;
+}
+
+.rep-card {
+  flex: 0 0 262px;
+  min-width: 262px;
+  padding: 16px 18px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background-color: var(--surface-color);
+  box-shadow: 0 1px 3px rgba(20, 20, 40, 0.04);
+}
+
+.rep-card-month {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 13.5px;
+  color: var(--text-color);
+}
+
+.rep-card-month button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--text-muted-color);
+  cursor: pointer;
+}
+
+.rep-card-month button:hover {
+  background-color: var(--day-hover-background-color);
+  color: var(--primary-color);
+}
+
+.rep-card-title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rep-card-donut {
+  height: 168px;
+  margin-bottom: 14px;
+}
+
+.rep-card-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--text-muted-color);
+}
+
+.rep-card-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rep-card-legend strong {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.rep-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rep-dot--present {
+  background-color: var(--primary-color);
+}
+
+.rep-dot--absent {
+  background-color: var(--text-muted-color);
+}
+
+/* --- Main two-column area --- */
+.rep-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 18px;
+  align-items: start;
+}
+
+.rep-left {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* --- Filters --- */
+.rep-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background-color: var(--surface-color);
+}
+
+.rep-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 132px;
+  min-width: 0;
+  padding: 7px 12px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+}
+
+.rep-filter-label {
+  font-size: 11.5px;
+  color: var(--text-muted-color);
+}
+
+.rep-filter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding: 0 18px 0 0;
+  border: none;
+  background-color: transparent;
+  color: var(--text-color);
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23888e96' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+}
+
+.rep-filter-select option {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+}
+
+.rep-generate {
+  flex: 0 0 auto;
+  padding: 13px 22px;
+  border: none;
+  border-radius: 9px;
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.rep-generate:hover {
+  background-color: var(--button-hover-background-color);
+}
+
+/* --- Table --- */
+.rep-table-card {
+  padding: 18px 0 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background-color: var(--surface-color);
+  overflow: hidden;
+}
+
+.rep-table-title {
+  margin: 0 20px 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.rep-notice {
+  margin: 0 20px 12px;
+  font-size: 13px;
+  color: var(--text-muted-color);
+}
+
+.rep-table-scroll {
+  overflow-x: auto;
+}
+
+.rep-table {
+  width: 100%;
+  min-width: 660px;
+  border-collapse: collapse;
+}
+
+.rep-table th,
+.rep-table td {
+  padding: 13px 14px;
+  text-align: center;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+.rep-table th {
+  font-weight: 500;
+  color: var(--text-muted-color);
+  background-color: var(--day-hover-background-color);
+}
+
+.rep-table th:first-child,
+.rep-table td:first-child {
+  padding-left: 22px;
+  width: 6%;
+}
+
+.rep-table td {
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-subtle-color);
+}
+
+.rep-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rep-mode {
+  text-transform: capitalize;
+}
+
+.rep-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 7px;
+  background-color: transparent;
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.rep-edit:hover {
+  background-color: var(--day-hover-background-color);
+}
+
+.rep-table-empty {
+  padding: 26px 14px;
+  color: var(--text-muted-color);
+}
+
+/* --- Overall performance --- */
+.rep-side {
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background-color: var(--surface-color);
+}
+
+.rep-side-title {
+  margin: 0 0 18px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.rep-side-chart {
+  height: 232px;
+}
+
+.rep-side-caption {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+/* --- Edit dialog --- */
+.rep-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: var(--overlay-color);
+}
+
+.rep-modal {
+  width: 100%;
+  max-width: 380px;
+  padding: 22px;
+  border-radius: 14px;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.rep-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.rep-modal-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.rep-modal-head button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 7px;
+  background-color: transparent;
+  color: var(--text-muted-color);
+  cursor: pointer;
+}
+
+.rep-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.rep-modal-field span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.rep-modal-field select {
+  padding: 10px 12px;
+  border: 1px solid var(--input-border-color);
+  border-radius: 8px;
+  background-color: var(--input-background-color);
+  color: var(--input-text-color);
+  font-size: 14px;
+  outline: none;
+}
+
+.rep-modal-save {
+  width: 100%;
+  margin-top: 6px;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rep-modal-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* --- Responsive --- */
+@media (max-width: 1040px) {
+  .rep-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .rep-filter {
+    flex: 1 1 100%;
+  }
+
+  .rep-generate {
+    width: 100%;
+  }
+}

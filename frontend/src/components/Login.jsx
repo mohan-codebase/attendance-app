@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import Modal from './Model'; // Import the Modal component
+import GoogleAuthButton from './GoogleAuthButton';
 import Logo from '../img/logo.png'; // Logo
 import person1 from '../img/character-1.png'; // Person 1
 import person2 from '../img/character-2.png'; // Person 2
@@ -200,6 +201,14 @@ const Login = ({ setIsAuthenticated }) => {
                                     {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : 'Sign In'}
                                 </button>
                             </form>
+
+                            <GoogleAuthButton
+                                setIsAuthenticated={setIsAuthenticated}
+                                onError={(message) => {
+                                    setModal({ show: true, message });
+                                    setTimeout(() => setModal({ show: false, message: '' }), 2500);
+                                }}
+                            />
                         </div>
                     </div>
                 </div>

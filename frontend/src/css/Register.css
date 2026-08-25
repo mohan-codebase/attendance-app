@@ -44,7 +44,7 @@
   font-family: "Merriweather",serif;
   font-weight: 700;
   font-size: 35px;
-  color: #353537;
+  color: var(--text-color);
   line-height: 30px;
 }
 

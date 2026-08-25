@@ -12,5 +12,7 @@ services:
         generateValue: true
       - key: CORS_ORIGIN
         sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       - key: PORT
         value: 5000

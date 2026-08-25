@@ -1,35 +1,110 @@
 /* ===== Theme ===== */
 /* App.css */
 
-/* Define CSS variables for light and dark themes */
+/* Design tokens.
+   Every token used anywhere in the app must be defined in BOTH blocks below —
+   an undefined var() makes the whole declaration invalid, which silently leaves
+   the element with its light-mode Bootstrap default. */
 :root {
-  --background-color: #ffffff;
-  --text-color: #000000;
-  --sidebar-background-color: #ffffff;
-  --sidebar-text-color: #000000;
+  color-scheme: light;
+
+  /* Surfaces — the page sits a shade below the cards so panels read as raised */
+  --background-color: #f6f7f9;
+  --surface-color: #ffffff;
   --card-background-color: #f9fbff;
-  --card-text-color: #000000;
+  --card-text-color: #212529;
+  --sidebar-background-color: #ffffff;
+  --sidebar-text-color: #212529;
+  --overlay-color: rgba(0, 0, 0, 0.5);
+
+  /* Text */
+  --text-color: #212529;
+  --text-muted-color: #6c757d;
+
+  /* Lines */
+  --border-color: #dee2e6;
+  --border-subtle-color: rgba(0, 0, 0, 0.08);
+
+  /* Inputs */
   --input-background-color: #ffffff;
-  --input-text-color: #000000;
-  --input-placeholder-color: #666666;
-  /* Placeholder color for light theme */
+  --input-text-color: #212529;
+  --input-placeholder-color: #6c757d;
+  --input-border-color: #ced4da;
+  --input-focus-border-color: #a45ee5;
+  --input-focus-shadow-color: rgba(164, 94, 229, 0.25);
+
+  /* Brand / actions */
+  --primary-color: #a45ee5;
+  --primary-text-color: #ffffff;
+  --secondary-color: #e9ecef;
+  --secondary-text-color: #212529;
   --button-background-color: #a45ee5;
   --button-text-color: #ffffff;
+  --button-border-color: #a45ee5;
+  --button-hover-background-color: #cf9cff;
+  --button-hover-text-color: #ffffff;
+  --button-hover-border-color: #cf9cff;
+
+  /* Calendars */
+  --toolbar-background-color: transparent;
+  --toolbar-text-color: #212529;
+  --day-background-color: transparent;
+  --day-hover-background-color: rgba(164, 94, 229, 0.08);
+  --today-background-color: rgba(164, 94, 229, 0.14);
+  --today-text-color: #212529;
+  --off-range-background-color: #f6f7f9;
+  --off-range-text-color: #adb5bd;
+
+  /* Icons: sidebar art is dark line-work, so it needs no filter on light */
+  --icon-filter: none;
 }
 
 [data-theme='dark'] {
-  --background-color: #292a2d ;
-  --text-color: #ffffff;
+  color-scheme: dark;
+
+  --background-color: #292a2d;
+  --surface-color: #313337;
+  --card-background-color: #313337;
+  --card-text-color: #ffffff;
   --sidebar-background-color: #232528;
   --sidebar-text-color: #ffffff;
-  --card-background-color: #111111;
-  --card-text-color: #ffffff;
-  --input-background-color: #000000;
+  --overlay-color: rgba(0, 0, 0, 0.65);
+
+  --text-color: #ffffff;
+  --text-muted-color: #a8aeb5;
+
+  --border-color: #3d4045;
+  --border-subtle-color: rgba(255, 255, 255, 0.08);
+
+  --input-background-color: #202225;
   --input-text-color: #ffffff;
-  --input-placeholder-color: #aaaaaa;
-  /* Placeholder color for dark theme */
+  --input-placeholder-color: #9aa0a6;
+  --input-border-color: #43474d;
+  --input-focus-border-color: #cf9cff;
+  --input-focus-shadow-color: rgba(207, 156, 255, 0.25);
+
+  --primary-color: #a45ee5;
+  --primary-text-color: #ffffff;
+  --secondary-color: #3a3d42;
+  --secondary-text-color: #ffffff;
   --button-background-color: #a45ee5;
   --button-text-color: #ffffff;
+  --button-border-color: #a45ee5;
+  --button-hover-background-color: #cf9cff;
+  --button-hover-text-color: #ffffff;
+  --button-hover-border-color: #cf9cff;
+
+  --toolbar-background-color: transparent;
+  --toolbar-text-color: #ffffff;
+  --day-background-color: transparent;
+  --day-hover-background-color: rgba(207, 156, 255, 0.12);
+  --today-background-color: rgba(164, 94, 229, 0.22);
+  --today-text-color: #ffffff;
+  --off-range-background-color: #232528;
+  --off-range-text-color: #6b7178;
+
+  /* Flip the dark PNG icons to light so they stay visible on dark surfaces */
+  --icon-filter: brightness(0) invert(0.88);
 }
 
 /* ------------Present Sir Theme --------------- */
@@ -65,69 +140,310 @@
 
 .selected-component:hover {
   color: #ffffff;
-  /* Ensure text color remains white on hover */
   background-color: #CF9CFF;
-  /* Ensure background color remains the same on hover */
 }
 
 /* ------------Present Sir Theme End --------------- */
+
+html {
+  background-color: var(--background-color);
+}
+
 body {
   background-color: var(--background-color);
   color: var(--text-color);
 }
-
-.sidebar {
-  background-color: var(--sidebar-background-color);
-  color: var(--sidebar-text-color);
-}
-
-.sidebar-title {
-  font-size: 24px;
-
-}
-
-
-.nav-link {
-  color: var(--sidebar-text-color);
-  text-decoration: none;
-}
-
-.nav-link:hover {
-  color: var(--sidebar-text-color);
-  /* Disable hover effect */
-  background-color: var(--sidebar-background-color);
-  /* Disable hover effect */
-}
-
-
-.nav-link.selected-component {
-  color: #ffffff;
-  background-color: #a45ee5;
-}
-
-
 
 button {
   background-color: var(--button-background-color);
   color: var(--button-text-color);
 }
 
-/* Additional styles for other components */
-.navbar,
-.list-group-item,
-.badge,
-.form-control,
-.form-select {
+/* ===== Bootstrap surface overrides ===== */
+/* Bootstrap ships light-only defaults for these, so they have to follow the
+   tokens. .badge is deliberately excluded: overriding it would flatten
+   .bg-success / .bg-danger status pills. */
+
+.navbar {
   background-color: var(--background-color);
   color: var(--text-color);
+}
+
+.list-group,
+.list-group-item {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.card,
+.card-header,
+.card-footer {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.form-control,
+.form-select {
+  background-color: var(--input-background-color);
+  color: var(--input-text-color);
+  border-color: var(--input-border-color);
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--input-background-color);
+  color: var(--input-text-color);
+  border-color: var(--input-focus-border-color);
+  box-shadow: 0 0 0 0.2rem var(--input-focus-shadow-color);
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+  background-color: var(--secondary-color);
+  color: var(--text-muted-color);
 }
 
 .alert {
   background-color: var(--card-background-color);
   color: var(--card-text-color);
+  border-color: var(--border-color);
 }
 
-/* Dashboard upcoming class scroll bar hide css */
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.dropdown-menu {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.dropdown-item {
+  color: var(--text-color);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--day-hover-background-color);
+  color: var(--text-color);
+}
+
+.accordion-item,
+.accordion-button,
+.accordion-body,
+.accordion-collapse {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--day-hover-background-color);
+  color: var(--text-color);
+}
+
+/* Bootstrap draws these as dark SVGs — invert them so they read on dark */
+[data-theme='dark'] .accordion-button::after,
+[data-theme='dark'] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Page-header icons are dark line-art PNGs like the sidebar's, so they get the
+   same treatment. The theme preview thumbnails (.theme-img) are real
+   screenshots and must never be inverted. */
+.book,
+.bell,
+.settings,
+img[alt="Notification"] {
+  filter: var(--icon-filter);
+}
+
+/* Muted helper text is the single most common contrast failure in dark mode */
+.text-muted {
+  color: var(--text-muted-color) !important;
+}
+
+/* Bootstrap 5 dropped the v4 .badge-primary name, so the Dashboard's date
+   badges were rendering as white text on a white card in the light theme. */
+.badge-primary {
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+}
+
+/* "Not marked" pill on the attendance list */
+[data-theme='dark'] .badge.bg-light {
+  background-color: var(--secondary-color) !important;
+  color: var(--secondary-text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme='dark'] .badge.bg-light.text-dark {
+  color: var(--secondary-text-color) !important;
+}
+
+hr {
+  border-color: var(--border-color);
+}
+
+/* ===== Brand color =====
+   Bootstrap's "primary" is its own blue (#0d6efd), which ignores the PresentSir
+   purple and leaves blue buttons, radios, switches and sliders scattered across
+   the app. Remap primary onto the brand token in both themes. */
+
+.btn-primary {
+  --bs-btn-color: var(--primary-text-color);
+  --bs-btn-bg: var(--primary-color);
+  --bs-btn-border-color: var(--primary-color);
+  --bs-btn-hover-color: var(--button-hover-text-color);
+  --bs-btn-hover-bg: var(--button-hover-background-color);
+  --bs-btn-hover-border-color: var(--button-hover-border-color);
+  --bs-btn-active-color: var(--button-hover-text-color);
+  --bs-btn-active-bg: var(--button-hover-background-color);
+  --bs-btn-active-border-color: var(--button-hover-border-color);
+  --bs-btn-disabled-color: var(--primary-text-color);
+  --bs-btn-disabled-bg: var(--primary-color);
+  --bs-btn-disabled-border-color: var(--primary-color);
+  --bs-btn-focus-shadow-rgb: 164, 94, 229;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--primary-color);
+  --bs-btn-border-color: var(--primary-color);
+  --bs-btn-hover-color: var(--primary-text-color);
+  --bs-btn-hover-bg: var(--primary-color);
+  --bs-btn-hover-border-color: var(--primary-color);
+  --bs-btn-active-color: var(--primary-text-color);
+  --bs-btn-active-bg: var(--primary-color);
+  --bs-btn-active-border-color: var(--primary-color);
+  --bs-btn-disabled-color: var(--primary-color);
+  --bs-btn-disabled-border-color: var(--primary-color);
+  --bs-btn-focus-shadow-rgb: 164, 94, 229;
+}
+
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+.border-primary {
+  border-color: var(--primary-color) !important;
+}
+
+.link-primary,
+a:not(.btn):not(.sidebar-nav-link):not(.sidebar-subnav-link) {
+  color: var(--primary-color);
+}
+
+.link-primary:hover,
+a:not(.btn):not(.sidebar-nav-link):not(.sidebar-subnav-link):hover {
+  color: var(--button-hover-background-color);
+}
+
+/* Native controls that don't carry a Bootstrap class (e.g. Login's "Remember
+   me" checkbox) still follow the brand through accent-color. */
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'],
+progress {
+  accent-color: var(--primary-color);
+}
+
+/* Radios, checkboxes and switches (Settings: theme picker + notification toggle) */
+.form-check-input {
+  background-color: var(--input-background-color);
+  border-color: var(--input-border-color);
+}
+
+.form-check-input:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.form-check-input:focus {
+  border-color: var(--input-focus-border-color);
+  box-shadow: 0 0 0 0.25rem var(--input-focus-shadow-color);
+}
+
+/* Range sliders (Settings: notify / reminder interval) */
+.form-range::-webkit-slider-thumb {
+  background-color: var(--primary-color);
+}
+
+.form-range::-webkit-slider-thumb:active {
+  background-color: var(--button-hover-background-color);
+}
+
+.form-range::-moz-range-thumb {
+  background-color: var(--primary-color);
+}
+
+.form-range::-moz-range-thumb:active {
+  background-color: var(--button-hover-background-color);
+}
+
+.form-range::-webkit-slider-runnable-track {
+  background-color: var(--secondary-color);
+}
+
+.form-range::-moz-range-track {
+  background-color: var(--secondary-color);
+}
+
+.form-range:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 1px var(--background-color), 0 0 0 0.25rem var(--input-focus-shadow-color);
+}
+
+.form-range:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 1px var(--background-color), 0 0 0 0.25rem var(--input-focus-shadow-color);
+}
+
+/* Accordion chevron/focus (Report page) */
+.accordion {
+  --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem var(--input-focus-shadow-color);
+  --bs-accordion-active-color: var(--primary-color);
+}
+
+.spinner-border.text-primary {
+  color: var(--primary-color) !important;
+}
+
+/* ===== App Layout ===== */
+
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1;
+  /* Flex items default to min-width:auto, which lets wide content (the course
+     card row) stretch the page instead of scrolling inside its own container. */
+  min-width: 0;
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.with-sidebar {
+  margin-left: 254px;
+}
+
+@media (max-width: 768px) {
+  .main-content.with-sidebar {
+    margin-left: 0;
+    padding-top: 60px;
+  }
+}
+
+/* ===== Scrollbar Utilities ===== */
 
 /* Hide scrollbar for Chrome, Safari and Opera */
 .hide-scrollbar::-webkit-scrollbar {
@@ -137,12 +453,10 @@ button {
 /* Hide scrollbar for IE, Edge and Firefox */
 .hide-scrollbar {
   -ms-overflow-style: none;
-  /* IE and Edge */
   scrollbar-width: none;
-  /* Firefox */
 }
 
-/* Report calendar color */
+/* ===== Report calendar color ===== */
 
 .present {
   background-color: green !important;
@@ -154,81 +468,66 @@ button {
   color: white !important;
 }
 
-.app {
-  display: flex;
-}
+/* ===== Placeholder text color ===== */
 
-.sidebar {
-  width: 250px;
-  background-color: var(--sidebar-background-color);
-  padding: 20px;
-}
-
-.main-content {
-  flex-grow: 1;
-  padding: 20px;
-}
-
-.sidebar-list {
-  list-style-type: none;
-  padding: 0;
-}
-
-.sidebar-list li {
-  margin: 10px 0;
-}
-
-.sidebar-list li a {
-  text-decoration: none;
-  color: var(--sidebar-text-color);
-  font-weight: bold;
-}
-
-.sidebar-list li button {
-  background: none;
-  border: none;
-  color: var(--sidebar-text-color);
-  cursor: pointer;
-}
-
-.sidebar-title {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-/* Placeholder text color for light and dark themes */
 ::placeholder {
   color: var(--input-placeholder-color);
 }
 
 [data-theme='dark'] ::placeholder {
-  color: #aaaaaa;
-  /* Light gray color for dark theme */
+  color: #9aa0a6;
 }
 
 [data-theme='light'] ::placeholder {
-  color: #666666;
-  /* Dark gray color for light theme */
+  color: #6c757d;
 }
 
-/* Report.css */
-
-/* Custom styles for the calendar component */
-.custom-calendar {
-  --calendar-background-color: var(--background-color);
-  --calendar-text-color: var(--text-color);
-  --calendar-border-color: var(--border-color);
-}
+/* ===== react-calendar (Report page) ===== */
 
 .react-calendar {
-  background-color: var(--calendar-background-color);
-  color: var(--calendar-text-color);
-  border: 1px solid var(--calendar-border-color);
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.react-calendar__navigation button {
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+  background-color: var(--day-hover-background-color);
+}
+
+.react-calendar__navigation button:disabled {
+  background-color: transparent;
+  color: var(--off-range-text-color);
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  color: var(--text-muted-color);
+  text-decoration: none;
 }
 
 .react-calendar__tile {
-  background-color: var(--calendar-background-color);
-  color: var(--calendar-text-color);
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+  background-color: var(--day-hover-background-color);
+}
+
+.react-calendar__month-view__days__day--neighboringMonth {
+  color: var(--off-range-text-color);
+}
+
+.react-calendar__tile--now {
+  background-color: var(--today-background-color);
+  color: var(--today-text-color);
 }
 
 .react-calendar__tile--active {
@@ -236,39 +535,17 @@ button {
   color: var(--primary-text-color);
 }
 
-.react-calendar__tile--now {
-  background-color: var(--secondary-color);
-  color: var(--secondary-text-color);
+/* The present/absent day markers must still win over the tile colors above */
+.react-calendar__tile.present,
+.react-calendar__tile.absent {
+  color: #ffffff !important;
 }
 
-.present {
-  background-color: green !important;
-  color: white !important;
-}
-
-.absent {
-  background-color: red !important;
-  color: white !important;
-}
-
-/* Calendar.css */
-
-/* Custom styles for the calendar component */
-.custom-calendar {
-  --calendar-background-color: var(--background-color);
-  --calendar-text-color: var(--text-color);
-  --calendar-border-color: var(--border-color);
-}
+/* ===== react-big-calendar (Calendar page) ===== */
 
 .rbc-calendar {
-  background-color: var(--calendar-background-color);
-  color: var(--calendar-text-color);
-  border: 1px solid var(--calendar-border-color);
-}
-
-.rbc-event {
-  background-color: var(--primary-color);
-  color: var(--primary-text-color);
+  background-color: var(--surface-color);
+  color: var(--text-color);
 }
 
 .rbc-toolbar {
@@ -276,14 +553,46 @@ button {
   color: var(--toolbar-text-color);
 }
 
+.rbc-toolbar-label {
+  color: var(--text-color);
+}
+
 .rbc-toolbar button {
   background-color: var(--button-background-color);
   color: var(--button-text-color);
+  border-color: var(--button-border-color);
 }
 
-.rbc-toolbar button:hover {
+.rbc-toolbar button:hover,
+.rbc-toolbar button:focus,
+.rbc-toolbar button.rbc-active {
   background-color: var(--button-hover-background-color);
   color: var(--button-hover-text-color);
+  border-color: var(--button-hover-border-color);
+}
+
+.rbc-header {
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rbc-header + .rbc-header,
+.rbc-day-bg + .rbc-day-bg,
+.rbc-time-content > * + * > *,
+.rbc-time-header-content,
+.rbc-timeslot-group {
+  border-color: var(--border-color);
+}
+
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view table.rbc-agenda-table {
+  border-color: var(--border-color);
+}
+
+.rbc-month-row + .rbc-month-row,
+.rbc-time-content {
+  border-top-color: var(--border-color);
 }
 
 .rbc-day-bg {
@@ -294,24 +603,95 @@ button {
   background-color: var(--day-hover-background-color);
 }
 
+.rbc-off-range-bg {
+  background-color: var(--off-range-background-color);
+}
+
+.rbc-off-range {
+  color: var(--off-range-text-color);
+}
+
+.rbc-date-cell {
+  color: var(--text-color);
+}
+
 .rbc-today {
   background-color: var(--today-background-color);
   color: var(--today-text-color);
 }
 
-/* AddAdmission.css */
-
-/* Custom styles for the form component */
-.custom-form {
-  --form-background-color: var(--background-color);
-  --form-text-color: var(--text-color);
-  --form-border-color: var(--border-color);
+.rbc-event {
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
 }
 
+.rbc-show-more {
+  background-color: transparent;
+  color: var(--primary-color);
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+/* ===== react-datepicker ===== */
+
+.react-datepicker {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.react-datepicker__header,
+.react-datepicker__time-container .react-datepicker__time {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+}
+
+.react-datepicker__current-month,
+.react-datepicker-time__header,
+.react-datepicker__day-name,
+.react-datepicker__day,
+.react-datepicker__time-name {
+  color: var(--text-color);
+}
+
+.react-datepicker__day:hover,
+.react-datepicker__time-container .react-datepicker__time
+  .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item:hover {
+  background-color: var(--day-hover-background-color);
+  color: var(--text-color);
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__time-container .react-datepicker__time
+  .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item--selected {
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+}
+
+.react-datepicker__day--disabled,
+.react-datepicker__day--outside-month {
+  color: var(--off-range-text-color);
+}
+
+.react-datepicker__triangle::before,
+.react-datepicker__triangle::after {
+  border-bottom-color: var(--surface-color) !important;
+}
+
+.react-datepicker-popper {
+  z-index: 1200;
+}
+
+/* ===== AddAdmission.css — Form component ===== */
+
 .custom-form {
-  background-color: var(--form-background-color);
-  color: var(--form-text-color);
-  border: 1px solid var(--form-border-color);
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
 }
 
 .custom-form .form-control,
@@ -343,152 +723,25 @@ button {
   border: 1px solid var(--button-hover-border-color);
 }
 
-/* Sidebar.css */
+/* ===== Modal ===== */
 
-/* Custom styles for the sidebar component */
-.sidebar-background-color {
-  background-color: var(--sidebar-background-color);
-}
-
-.sidebar-title {
-  color: var(--sidebar-title-color);
-}
-
-.sidebar-link {
-  color: var(--sidebar-link-color);
-}
-
-.sidebar-link:hover {
-  color: var(--sidebar-link-hover-color);
-}
-
-.sidebar-link.active {
-  color: var(--sidebar-link-active-color);
-}
-
-/* ================================================= */
-
-/* Dashboard upcoming class scroll bar hide css */
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  /* IE and Edge */
-  scrollbar-width: none;
-  /* Firefox */
-}
-
-/* Report calendar color */
-
-.present {
-  background-color: green !important;
-  color: white !important;
-}
-
-.absent {
-  background-color: red !important;
-  color: white !important;
-}
-
-.app {
-  display: flex;
-}
-
-.sidebar {
-  width: 250px;
-  background-color: var(--sidebar-background-color);
-  padding: 20px;
-}
-
-.main-content {
-  flex-grow: 1;
-  padding: 20px;
-}
-
-.sidebar-list {
-  list-style-type: none;
-  padding: 0;
-}
-
-.sidebar-list li {
-  margin: 10px 0;
-}
-
-.sidebar-list li a {
-  text-decoration: none;
-  color: var(--sidebar-text-color);
-  font-weight: bold;
-}
-
-.sidebar-list li button {
-  background: none;
-  border: none;
-  color: var(--sidebar-text-color);
-  cursor: pointer;
-}
-
-.sidebar-title {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-
-
-/* Resister  */
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.modal.show.slide-down {
-  animation: slideDown 0.5s ease-out;
-}
-
-
-/* Login */
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.modal.show.slide-down {
-  animation: slideDown 0.5s ease-out;
-}
-
-
-/* Model */
 .modal-content {
-  background-color: var(--card-background-color);
-  color: var(--card-text-color);
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
 }
 
 .modal-header {
-  border-bottom: 1px solid var(--input-border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modal-footer {
-  border-top: 1px solid var(--input-border-color);
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-body {
+  padding: 1rem;
+  text-align: center;
 }
 
 .close {
@@ -507,7 +760,41 @@ button {
   border: 1px solid var(--button-hover-border-color);
 }
 
-/* Animation for slide-down effect */
+/* ===== Google sign-in ===== */
+
+.google-auth {
+  margin-top: 1.5rem;
+}
+
+.google-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+  color: var(--text-muted-color);
+  font-size: 13px;
+}
+
+.google-auth-divider::before,
+.google-auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-color);
+}
+
+.google-auth-button {
+  display: flex;
+  justify-content: center;
+}
+
+.google-auth-button[aria-busy='true'] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ===== Slide-down animation ===== */
+
 @keyframes slideDown {
   from {
     transform: translateY(-100%);
@@ -523,67 +810,3 @@ button {
 .modal.show.slide-down {
   animation: slideDown 0.5s ease-out;
 }
-
-
-/* Login */
-
-.modal-content {
-  background-color: var(--card-background-color);
-  color: var(--card-text-color);
-}
-
-.modal-body {
-  padding: 1rem;
-  text-align: center;
-}
-
-/* Animation for slide-down effect */
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.modal.show.slide-down {
-  animation: slideDown 0.5s ease-out;
-}
-
-
-/* Register model */
-
-.modal-content {
-  background-color: var(--card-background-color);
-  color: var(--card-text-color);
-  
-}
-
-.modal-body {
-  padding: 1rem;
-  text-align: center;
-}
-
-/* Animation for slide-down effect */
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.modal.show.slide-down {
-  animation: slideDown 0.5s ease-out;
-}
-
-
-

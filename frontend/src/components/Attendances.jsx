@@ -1,230 +1,232 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import moment from 'moment';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { Container, Row, Col, ListGroup, Button, Form } from 'react-bootstrap';
-import { FaUserGraduate } from 'react-icons/fa';  // Imported FontAwesome icon
+import { Search, Bell, UserRound, CircleUserRound, Calendar } from 'lucide-react';
+import { STATUSES, resolveDay } from '../constants/attendance';
 import '../css/Attendance.css';
-import bell from "../img/bell 1.png";
+
+const ALL = 'All';
 
 const Attendances = () => {
   const [students, setStudents] = useState([]);
-  const [filteredStudents, setFilteredStudents] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [batches, setBatches] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState('All');
-  const [selectedBatch, setSelectedBatch] = useState('All');
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [attendanceStatus, setAttendanceStatus] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
-  const fetchStudents = async () => {
-    try {
-      const response = await api.get('/api/admissions'); // Adjust endpoint as needed
-      const data = response.data;
-      setStudents(data);
-      setFilteredStudents(data);
-      setLoading(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [course, setCourse] = useState(ALL);
+  const [batch, setBatch] = useState(ALL);
+  const [year, setYear] = useState(ALL);
+  const [slot, setSlot] = useState(ALL);
+  const [query, setQuery] = useState('');
 
-      // Extract distinct courses and batches for the dropdown filters
-      const courseList = Array.from(new Set(data.map(student => student.course).filter(Boolean)));
-      const batchList = Array.from(new Set(data.map(student => student.batch).filter(Boolean)));
-      setCourses(courseList);
-      setBatches(batchList);
-    } catch (error) {
-      console.error('Error fetching students:', error);
-      setError('Error fetching students');
-      setLoading(false);
-    }
-  };
+  // Marks are staged locally and written once the user presses Submit.
+  const [marks, setMarks] = useState({});
 
   useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await api.get('/api/admissions');
+        setStudents(response.data);
+      } catch (err) {
+        console.error('Error fetching students:', err);
+        setError('Error fetching students');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchStudents();
   }, []);
 
+  // Load whatever is already recorded for the chosen day so the row buttons
+  // show the existing state instead of looking unmarked.
   useEffect(() => {
-    let filtered = students;
-    if (selectedCourse !== 'All') {
-      filtered = filtered.filter(student => student.course === selectedCourse);
-    }
-    if (selectedBatch !== 'All') {
-      filtered = filtered.filter(student => student.batch === selectedBatch);
-    }
-    setFilteredStudents(filtered);
-  }, [selectedCourse, selectedBatch, students]);
-
-  useEffect(() => {
-    const fetchAttendanceForDate = async () => {
+    const fetchForDate = async () => {
       try {
         const response = await api.get('/api/attendance');
-        const attendanceRecordsForDate = response.data.filter(record => {
-          const recordDate = moment(record.date).format('YYYY-MM-DD');
-          return recordDate === moment(selectedDate).format('YYYY-MM-DD');
-        });
-        const statusObj = attendanceRecordsForDate.reduce((acc, record) => {
-          if (record.studentId && record.studentId._id) {
-            const id = record.studentId._id;
-            if (!acc[id]) {
-              acc[id] = record.status;
-            } else {
-              if (acc[id] === 'Absent' && record.status === 'Present') {
-                acc[id] = 'Present';
-              }
-            }
-          }
-          return acc;
-        }, {});
-        setAttendanceStatus(statusObj);
+        const key = moment(selectedDate).format('YYYY-MM-DD');
+        const forDay = response.data.filter(
+          (record) => moment(record.date).format('YYYY-MM-DD') === key
+        );
+        setMarks(resolveDay(forDay));
       } catch (err) {
         console.error('Error fetching attendance:', err);
       }
     };
-
-    fetchAttendanceForDate();
+    fetchForDate();
   }, [selectedDate]);
 
-  if (loading) return <div className="container mt-4">Loading...</div>;
-  if (error) return <div className="container mt-4 text-danger">{error}</div>;
+  const options = useMemo(() => {
+    const uniq = (values) => Array.from(new Set(values.filter(Boolean)));
+    return {
+      courses: uniq(students.map((s) => s.course)),
+      batches: uniq(students.map((s) => s.batch)),
+      years: uniq(students.map((s) => s.date && moment(s.date).format('YYYY'))).sort().reverse(),
+      slots: uniq(students.map((s) => s.preferredSlot)),
+    };
+  }, [students]);
 
-  const markAttendance = async (studentId, status) => {
+  const filtered = useMemo(
+    () =>
+      students.filter((student) => {
+        if (course !== ALL && student.course !== course) return false;
+        if (batch !== ALL && student.batch !== batch) return false;
+        if (slot !== ALL && student.preferredSlot !== slot) return false;
+        if (year !== ALL && moment(student.date).format('YYYY') !== year) return false;
+        if (query && !(student.name || '').toLowerCase().includes(query.toLowerCase())) return false;
+        return true;
+      }),
+    [students, course, batch, slot, year, query]
+  );
+
+  const setMark = (studentId, status) =>
+    setMarks((prev) => ({ ...prev, [studentId]: prev[studentId] === status ? undefined : status }));
+
+  const markedCount = filtered.filter((s) => marks[s._id]).length;
+
+  const handleSubmit = async () => {
+    const entries = filtered
+      .map((student) => [student._id, marks[student._id]])
+      .filter(([, status]) => status);
+
+    if (!entries.length) {
+      setMessage('Mark at least one student before submitting.');
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      const attendanceData = { studentId, date: selectedDate, status };
-      await api.post('/api/attendance', attendanceData);
-      setMessage(`Attendance for student marked as ${status} on ${moment(selectedDate).format('YYYY-MM-DD')}`);
-      
-      // Update the attendanceStatus for the student
-      setAttendanceStatus(prev => ({ ...prev, [studentId]: status }));
-    } catch (error) {
-      console.error('Error marking attendance:', error);
-      setMessage('Error marking attendance');
+      await Promise.all(
+        entries.map(([studentId, status]) =>
+          api.post('/api/attendance', { studentId, date: selectedDate, status })
+        )
+      );
+      setMessage(
+        `Attendance submitted for ${entries.length} student${entries.length > 1 ? 's' : ''} on ${moment(
+          selectedDate
+        ).format('D MMM YYYY')}.`
+      );
+    } catch (err) {
+      console.error('Error submitting attendance:', err);
+      setMessage('Error submitting attendance. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const totalFiltered = filteredStudents.length;
-  const markedPresent = filteredStudents.filter(s => attendanceStatus[s._id] === "Present").length;
-  const markedAbsent = filteredStudents.filter(s => attendanceStatus[s._id] === "Absent").length;
-  const unmarked = totalFiltered - (markedPresent + markedAbsent);
+  const filterSelect = (value, onChange, placeholder, list) => (
+    <select className="att-filter" value={value} onChange={(e) => onChange(e.target.value)}>
+      <option value={ALL}>{placeholder}</option>
+      {list.map((item) => (
+        <option key={item} value={item}>{item}</option>
+      ))}
+    </select>
+  );
+
+  if (loading) return <div className="att-state">Loading students…</div>;
+  if (error) return <div className="att-state att-state--error">{error}</div>;
 
   return (
-    <Container fluid>
-      <div className="shadow-sm mb-4">
-        <div className='d-flex justify-content-between py-2'>
-          <div className='d-flex'>
-            <p className="ms-2 mt-2 font-weight-bold">Mark Attendance</p>
-          </div>
-          <img src={bell} alt="Notification" style={{ height: '20px' }} />
+    <div className="att">
+      <header className="att-header">
+        <div className="att-title">
+          <UserRound size={20} strokeWidth={1.75} />
+          <h1>Attendances</h1>
         </div>
 
-        {message && <div className="alert alert-info py-2">{message}</div>}
-
-        <Row className="g-3 mb-3">
-          <Col md={4}>
-            <Form.Group controlId="courseFilter">
-              <Form.Select
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-              >
-                <option value="All">Filter by Course: All</option>
-                {courses.map((course, index) => (
-                  <option key={index} value={course}>{course}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group controlId="dateFilter">
-              <DatePicker
-                selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
-                dateFormat="dd/MM/yyyy"
-                className="form-control"
-                wrapperClassName="d-block"
-              />
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group controlId="batchFilter">
-              <Form.Select
-                value={selectedBatch}
-                onChange={(e) => setSelectedBatch(e.target.value)}
-              >
-                <option value="All">Filter by Batch: All</option>
-                {batches.map((batch, index) => (
-                  <option key={index} value={batch}>{batch}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-        </Row>
-
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 className="mb-0">Student List ({totalFiltered})</h4>
-          <div>
-            <span className="badge bg-success me-2">Present: {markedPresent}</span>
-            <span className="badge bg-danger me-2">Absent: {markedAbsent}</span>
-            <span className="badge bg-secondary">Unmarked: {unmarked}</span>
+        <div className="att-header-actions">
+          <div className="att-search">
+            <Search size={16} strokeWidth={1.75} />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search students"
+            />
           </div>
+          <button className="att-bell" type="button" aria-label="Notifications">
+            <Bell size={20} strokeWidth={1.75} />
+          </button>
         </div>
+      </header>
 
-        {filteredStudents.length === 0 ? (
-          <p className="text-muted text-center py-4">No students found matching current filters.</p>
-        ) : (
-          <ListGroup>
-            {filteredStudents.map((student) => {
-              const currentStatus = attendanceStatus[student._id];
-              return (
-                <ListGroup.Item 
-                  key={student._id} 
-                  className="d-flex p-3 justify-content-between align-items-center student-list-item"
-                >
-                  <div className="d-flex align-items-center">
-                    <FaUserGraduate 
-                      style={{
-                        fontSize: '32px',
-                        marginRight: '12px',
-                        color: '#6c757d'
-                      }} 
-                    />
-                    <div>
-                      <strong className="d-block">{student.name}</strong>
-                      <small className="text-muted">{student.course} • Batch {student.batch}</small>
-                    </div>
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    {currentStatus ? (
-                      <span className={`badge ${currentStatus === 'Present' ? 'bg-success' : 'bg-danger'} me-2`}>
-                        {currentStatus}
-                      </span>
-                    ) : (
-                      <span className="badge bg-light text-dark border me-2">Not marked</span>
-                    )}
-                    <Button
-                      variant={currentStatus === "Present" ? "success" : "outline-success"}
-                      size="sm"
-                      className="px-3"
-                      onClick={() => markAttendance(student._id, "Present")}
-                    >
-                      P
-                    </Button>
-                    <Button
-                      variant={currentStatus === "Absent" ? "danger" : "outline-danger"}
-                      size="sm"
-                      className="px-3"
-                      onClick={() => markAttendance(student._id, "Absent")}
-                    >
-                      A
-                    </Button>
-                  </div>
-                </ListGroup.Item>
-              );
-            })}
-          </ListGroup>
+      {/* Filters */}
+      <div className="att-filters">
+        {filterSelect(course, setCourse, 'Courses', options.courses)}
+        {filterSelect(batch, setBatch, 'Batches', options.batches)}
+        {filterSelect(year, setYear, 'Year', options.years)}
+        {filterSelect(slot, setSlot, 'Time', options.slots)}
+
+        <div className="att-date">
+          <DatePicker
+            selected={selectedDate}
+            onChange={(date) => date && setSelectedDate(date)}
+            showTimeSelect
+            dateFormat="d MMM yyyy – h:mm aa"
+            className="att-date-input"
+            wrapperClassName="att-date-wrapper"
+          />
+          <Calendar size={17} strokeWidth={1.75} />
+        </div>
+      </div>
+
+      <div className="att-listhead">
+        <h2 className="att-listtitle">Student lists</h2>
+        {filtered.length > 0 && (
+          <span className="att-progress">{markedCount} of {filtered.length} marked</span>
         )}
       </div>
-    </Container>
+
+      {message && <p className="att-message">{message}</p>}
+
+      {filtered.length === 0 ? (
+        <p className="att-empty">No students match the current filters.</p>
+      ) : (
+        <ul className="att-list">
+          {filtered.map((student) => (
+            <li className="att-row" key={student._id}>
+              <div className="att-student">
+                <CircleUserRound size={26} strokeWidth={1.5} className="att-avatar" />
+                <span className="att-name">{student.name}</span>
+              </div>
+
+              <div
+                className={`att-actions ${marks[student._id] ? 'has-choice' : ''}`}
+                role="group"
+                aria-label={`Attendance for ${student.name}`}
+              >
+                {STATUSES.map(({ value, short, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    title={label}
+                    aria-pressed={marks[student._id] === value}
+                    className={`att-btn att-btn--${value.toLowerCase()} ${
+                      marks[student._id] === value ? 'is-active' : ''
+                    }`}
+                    onClick={() => setMark(student._id, value)}
+                  >
+                    {short}
+                  </button>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {filtered.length > 0 && (
+        <div className="att-footer">
+          <button className="att-submit" onClick={handleSubmit} disabled={submitting}>
+            {submitting ? 'Submitting…' : 'Submit'}
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 

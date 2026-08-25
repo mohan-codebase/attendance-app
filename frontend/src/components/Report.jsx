@@ -1,325 +1,474 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import moment from 'moment';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { Pie } from 'react-chartjs-2';
-import 'chart.js/auto';
-import { Accordion, Card, Button, useAccordionButton, Form } from 'react-bootstrap';
-import { FaChevronDown, FaChevronUp, FaUserGraduate } from 'react-icons/fa';
+import { Doughnut, Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from 'chart.js';
+import { ChevronLeft, ChevronRight, Pencil, X } from 'lucide-react';
+import { ABSENT, resolveDay, isAttended } from '../constants/attendance';
+import { centerLabel } from '../utils/chartPlugins';
 import '../css/Report.css';
 
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+
+const ALL = 'All';
+const PURPLE = '#a45ee5';
+
+const useThemeName = () => {
+  const [theme, setTheme] = useState(
+    () => document.documentElement.getAttribute('data-theme') || 'light'
+  );
+  useEffect(() => {
+    const observer = new MutationObserver(() =>
+      setTheme(document.documentElement.getAttribute('data-theme') || 'light')
+    );
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+  return theme;
+};
+
+// Present/absent day counts for a set of students over a set of records.
+const tally = (records, studentIds) => {
+  const byDate = records.reduce((acc, record) => {
+    const key = moment(record.date).format('YYYY-MM-DD');
+    (acc[key] = acc[key] || []).push(record);
+    return acc;
+  }, {});
+
+  let present = 0;
+  let absent = 0;
+  const perStudent = {};
+
+  Object.values(byDate).forEach((dayRecords) => {
+    Object.entries(resolveDay(dayRecords)).forEach(([id, status]) => {
+      if (studentIds && !studentIds.has(id)) return;
+      if (!perStudent[id]) perStudent[id] = { present: 0, absent: 0 };
+      if (isAttended(status)) {
+        present += 1;
+        perStudent[id].present += 1;
+      } else if (status === ABSENT) {
+        absent += 1;
+        perStudent[id].absent += 1;
+      }
+    });
+  });
+
+  return { present, absent, perStudent };
+};
+
+// One course card: its own month stepper, doughnut and legend.
+const CourseCard = ({ course, students, attendance, track, centerColor }) => {
+  const [offset, setOffset] = useState(0);
+  const month = useMemo(() => moment().add(offset, 'month'), [offset]);
+
+  const stats = useMemo(() => {
+    const ids = new Set(students.map((s) => s._id));
+    const inMonth = attendance.filter(
+      (r) => r.studentId && moment(r.date).isSame(month, 'month')
+    );
+    const { present, absent } = tally(inMonth, ids);
+    const total = present + absent;
+    return {
+      present,
+      absent,
+      total,
+      presentPct: total ? Math.round((present / total) * 100) : 0,
+      absentPct: total ? Math.round((absent / total) * 100) : 0,
+    };
+  }, [students, attendance, month]);
+
+  const data = {
+    labels: ['Present', 'Absent'],
+    datasets: [
+      {
+        data: stats.total ? [stats.presentPct, stats.absentPct] : [0, 100],
+        backgroundColor: [PURPLE, track],
+        borderWidth: 0,
+        borderRadius: 12,
+        cutout: '76%',
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    rotation: -20,
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: stats.total > 0 },
+      centerLabel: { text: 'Total : 100%', color: centerColor },
+    },
+  };
+
+  return (
+    <article className="rep-card">
+      <header className="rep-card-month">
+        <button type="button" onClick={() => setOffset((o) => o - 1)} aria-label="Previous month">
+          <ChevronLeft size={17} />
+        </button>
+        <span>{month.format('MMMM YYYY')}</span>
+        <button type="button" onClick={() => setOffset((o) => o + 1)} aria-label="Next month">
+          <ChevronRight size={17} />
+        </button>
+      </header>
+
+      <h3 className="rep-card-title" title={course}>{course}</h3>
+
+      <div className="rep-card-donut">
+        <Doughnut data={data} options={options} plugins={[centerLabel]} />
+      </div>
+
+      <ul className="rep-card-legend">
+        <li>
+          <span className="rep-dot rep-dot--present" />
+          Present <strong>{stats.presentPct}%</strong>
+        </li>
+        <li>
+          <span className="rep-dot rep-dot--absent" />
+          Absent <strong>{stats.absentPct}%</strong>
+        </li>
+      </ul>
+    </article>
+  );
+};
+
 const Report = () => {
-  // State declarations
   const [students, setStudents] = useState([]);
-  const [filteredStudents, setFilteredStudents] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [batches, setBatches] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState('All');
-  const [selectedBatch, setSelectedBatch] = useState('All');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [attendanceStatus, setAttendanceStatus] = useState({});
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [selectedMonth, setSelectedMonth] = useState(moment().format('YYYY-MM'));
 
-  // Fetch Students Data
-  const fetchStudents = async () => {
+  // Draft filters vs. the ones the table is actually showing — the table only
+  // changes when "Generate Report" is pressed, as designed.
+  const [draft, setDraft] = useState({ course: ALL, batch: ALL, month: ALL, mode: ALL });
+  const [applied, setApplied] = useState({ course: ALL, batch: ALL, month: ALL, mode: ALL });
+
+  const [editing, setEditing] = useState(null);
+  const [editForm, setEditForm] = useState({ batch: '', modeOfLearning: '' });
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState('');
+
+  const theme = useThemeName();
+  const isDark = theme === 'dark';
+  const track = isDark ? '#3f434a' : '#dcdde1';
+  const centerColor = isDark ? '#ffffff' : '#33353a';
+  const axisColor = isDark ? '#a8aeb5' : '#8b909a';
+
+  const load = async () => {
     try {
-      const response = await api.get('/api/admissions');
-      const data = response.data;
-      setStudents(data);
-      setFilteredStudents(data);
-
-      // Extract distinct courses and batches
-      const courseList = Array.from(new Set(data.map(student => student.course).filter(Boolean)));
-      const batchList = Array.from(new Set(data.map(student => student.batch).filter(Boolean)));
-      setCourses(courseList);
-      setBatches(batchList);
-    } catch (error) {
-      console.error('Error fetching students:', error);
-      setError('Error fetching students');
+      const [studentsRes, attendanceRes] = await Promise.allSettled([
+        api.get('/api/admissions'),
+        api.get('/api/attendance'),
+      ]);
+      if (studentsRes.status === 'fulfilled') setStudents(studentsRes.value.data);
+      else setError('Error fetching students');
+      if (attendanceRes.status === 'fulfilled') setAttendance(attendanceRes.value.data);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch Attendance Data
-  const fetchAttendance = async () => {
-    try {
-      const response = await api.get('/api/attendance');
-      const attendanceRecords = response.data;
-
-      const statusObj = attendanceRecords.reduce((acc, record) => {
-        if (record.studentId?._id) {
-          const id = record.studentId._id;
-          const date = moment(record.date).format('YYYY-MM-DD');
-          if (!acc[id]) acc[id] = {};
-          acc[id][date] = record.status;
-        }
-        return acc;
-      }, {});
-      setAttendanceStatus(statusObj);
-    } catch (err) {
-      console.error('Error fetching attendance:', err);
-    }
-  };
-
   useEffect(() => {
-    fetchStudents();
-    fetchAttendance();
+    load();
   }, []);
 
-  // Filter Students by Course and Batch
-  useEffect(() => {
-    let filtered = students;
-
-    if (selectedCourse !== 'All') {
-      filtered = filtered.filter(student => student.course === selectedCourse);
-    }
-
-    if (selectedBatch !== 'All') {
-      filtered = filtered.filter(student => student.batch === selectedBatch);
-    }
-
-    setFilteredStudents(filtered);
-  }, [selectedCourse, selectedBatch, students]);
-
-  // Calculate Attendance Counts for Selected Date
-  const calculateAttendanceCountsForDate = (date) => {
-    let presentCount = 0;
-    let absentCount = 0;
-
-    filteredStudents.forEach(student => {
-      if (attendanceStatus[student._id] && attendanceStatus[student._id][date]) {
-        if (attendanceStatus[student._id][date] === 'Present') presentCount++;
-        else if (attendanceStatus[student._id][date] === 'Absent') absentCount++;
-      }
-    });
-
-    return { presentCount, absentCount };
-  };
-
-  const { presentCount, absentCount } = calculateAttendanceCountsForDate(moment(selectedDate).format('YYYY-MM-DD'));
-
-  // Calculate Student Attendance Counts for a Specific Month
-  const calculateStudentAttendanceCounts = (studentId, month) => {
-    let presentCount = 0;
-    let absentCount = 0;
-
-    if (attendanceStatus[studentId]) {
-      Object.entries(attendanceStatus[studentId]).forEach(([date, status]) => {
-        if (moment(date).format('YYYY-MM') === month) {
-          if (status === 'Present') presentCount++;
-          else if (status === 'Absent') absentCount++;
-        }
-      });
-    }
-
-    const totalDays = presentCount + absentCount;
-    const presentPercentage = totalDays > 0 ? ((presentCount / totalDays) * 100).toFixed(2) : 0;
-    const absentPercentage = totalDays > 0 ? ((absentCount / totalDays) * 100).toFixed(2) : 0;
-
-    return { presentCount, absentCount, presentPercentage, absentPercentage };
-  };
-
-  // Get Tile Class Name for Calendar
-  const getTileClassName = ({ date, view }, studentId) => {
-    if (view === 'month') {
-      const dateString = moment(date).format('YYYY-MM-DD');
-      if (attendanceStatus[studentId]?.[dateString]) {
-        return attendanceStatus[studentId][dateString] === 'Present' ? 'present' : 'absent';
-      }
-    }
-    return null;
-  };
-
-  // Handle Active Start Date Change for Calendar
-  const handleActiveStartDateChange = ({ activeStartDate }) => {
-    setSelectedMonth(moment(activeStartDate).format('YYYY-MM'));
-  };
-
-  // Render Pie Chart for Student Attendance
-  const renderPieChart = (studentId, month) => {
-    const { presentCount, absentCount } = calculateStudentAttendanceCounts(studentId, month);
-    const data = {
-      labels: ['Present', 'Absent'],
-      datasets: [
-        {
-          data: [presentCount, absentCount],
-          backgroundColor: ['#A45EE5', '#757575'],
-        },
-      ],
+  const options = useMemo(() => {
+    const uniq = (values) => Array.from(new Set(values.filter(Boolean)));
+    return {
+      courses: uniq(students.map((s) => s.course)),
+      batches: uniq(students.map((s) => s.batch)),
+      modes: uniq(students.map((s) => s.modeOfLearning)),
+      months: Array.from({ length: 12 }, (_, i) =>
+        moment().subtract(i, 'month').format('MMM YYYY')
+      ),
     };
+  }, [students]);
 
-    return <Pie data={data} />;
-  };
+  // Cards: one per course that has students.
+  const courseGroups = useMemo(() => {
+    const groups = students.reduce((acc, student) => {
+      const key = student.course || 'Unassigned';
+      (acc[key] = acc[key] || []).push(student);
+      return acc;
+    }, {});
+    return Object.entries(groups).map(([course, list]) => ({ course, students: list }));
+  }, [students]);
 
-  // Custom Toggle Component
-  function CustomToggle({ children, eventKey, onClick }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const decoratedOnClick = useAccordionButton(eventKey, () => {
-      setIsOpen(!isOpen);
-      onClick();
+  // Table rows for the applied filters.
+  const rows = useMemo(() => {
+    const matching = students.filter((student) => {
+      if (applied.course !== ALL && student.course !== applied.course) return false;
+      if (applied.batch !== ALL && student.batch !== applied.batch) return false;
+      if (applied.mode !== ALL && student.modeOfLearning !== applied.mode) return false;
+      return true;
     });
 
-    return (
-      <div className="accordion-header" onClick={decoratedOnClick}>
-        <Button variant="btn" className="w-100 d-flex justify-content-between mb-5 align-items-center p-3 border">
-          <div className="d-flex align-items-center">
-            <FaUserGraduate className="me-3 text-color text-decoration-none" />
-            <h5 className="mb-0 text-color text-decoration-none">{children}</h5>
-          </div>
-          {isOpen ? <FaChevronUp /> : <FaChevronDown />}
-        </Button>
-      </div>
-    );
-  }
+    const scoped =
+      applied.month === ALL
+        ? attendance
+        : attendance.filter((r) => moment(r.date).format('MMM YYYY') === applied.month);
 
-  // Export to CSV
-  const exportCSV = () => {
-    const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
-    const headers = [
-      'Student Name',
-      'Course',
-      'Batch',
-      'Email',
-      'Mobile',
-      `Status on ${formattedDate}`,
-      `Present Days (${selectedMonth})`,
-      `Absent Days (${selectedMonth})`,
-      `Attendance Rate % (${selectedMonth})`
-    ];
+    const ids = new Set(matching.map((s) => s._id));
+    const { perStudent } = tally(scoped, ids);
 
-    const rows = filteredStudents.map(student => {
-      const stats = calculateStudentAttendanceCounts(student._id, selectedMonth);
-      const statusToday = attendanceStatus[student._id]?.[formattedDate] || 'Unmarked';
-      return [
-        `"${(student.name || '').replace(/"/g, '""')}"`,
-        `"${(student.course || '').replace(/"/g, '""')}"`,
-        `"${(student.batch || '').replace(/"/g, '""')}"`,
-        `"${(student.email || '').replace(/"/g, '""')}"`,
-        `"${(student.mobile || '').replace(/"/g, '""')}"`,
-        `"${statusToday}"`,
-        stats.presentCount,
-        stats.absentCount,
-        `"${stats.presentPercentage}%"`
-      ];
+    return matching.map((student) => ({
+      ...student,
+      present: perStudent[student._id]?.present || 0,
+      absent: perStudent[student._id]?.absent || 0,
+    }));
+  }, [students, attendance, applied]);
+
+  // Right-hand chart: attendance rate per month for the applied course.
+  const overall = useMemo(() => {
+    const scopedStudents =
+      applied.course === ALL ? students : students.filter((s) => s.course === applied.course);
+    const ids = new Set(scopedStudents.map((s) => s._id));
+
+    return Array.from({ length: 6 }, (_, i) => {
+      const month = moment().subtract(5 - i, 'month');
+      const inMonth = attendance.filter((r) => moment(r.date).isSame(month, 'month'));
+      const { present, absent } = tally(inMonth, ids);
+      const total = present + absent;
+      return { label: month.format('MMM'), pct: total ? Math.round((present / total) * 100) : 0 };
     });
+  }, [students, attendance, applied.course]);
 
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `attendance_report_${selectedMonth}_${formattedDate}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const reportTitle = applied.course === ALL ? 'All courses' : applied.course;
+
+  const openEdit = (student) => {
+    setEditing(student);
+    setEditForm({ batch: student.batch || '', modeOfLearning: student.modeOfLearning || '' });
   };
 
-  // Loading and Error States
-  if (loading) return <div className="container mt-4">Loading...</div>;
-  if (error) return <div className="container mt-4 text-danger">{error}</div>;
+  const saveEdit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.put(`/api/admissions/${editing._id}`, { ...editing, ...editForm });
+      setStudents((prev) =>
+        prev.map((s) => (s._id === editing._id ? { ...s, ...editForm } : s))
+      );
+      setNotice(`Updated ${editing.name}.`);
+      setEditing(null);
+    } catch (err) {
+      console.error('Error updating student:', err);
+      setNotice('Could not save changes. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const barData = {
+    labels: overall.map((m) => m.label),
+    datasets: [
+      {
+        data: overall.map((m) => m.pct),
+        backgroundColor: PURPLE,
+        borderRadius: 5,
+        borderSkipped: false,
+        barPercentage: 0.5,
+        categoryPercentage: 0.75,
+      },
+    ],
+  };
+
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y}% present` } },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: { color: axisColor, font: { size: 11 } },
+      },
+      y: {
+        min: 0,
+        max: 100,
+        grid: { color: isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)' },
+        border: { display: false },
+        ticks: {
+          stepSize: 50,
+          color: axisColor,
+          font: { size: 10 },
+          callback: (v) => `${v}%`,
+        },
+      },
+    },
+  };
+
+  const filterSelect = (key, label, list) => (
+    <label className="rep-filter">
+      <span className="rep-filter-label">{label}</span>
+      <select
+        className="rep-filter-select"
+        value={draft[key]}
+        onChange={(e) => setDraft({ ...draft, [key]: e.target.value })}
+      >
+        <option value={ALL}>All</option>
+        {list.map((item) => (
+          <option key={item} value={item}>{item}</option>
+        ))}
+      </select>
+    </label>
+  );
+
+  if (loading) return <div className="rep-state">Loading report…</div>;
+  if (error) return <div className="rep-state rep-state--error">{error}</div>;
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="mb-0">Attendance Report</h2>
-        <Button variant="outline-primary" onClick={exportCSV} disabled={filteredStudents.length === 0}>
-          <i className="bi bi-download me-1"></i> Export CSV
-        </Button>
-      </div>
-      {message && <div className="alert alert-info">{message}</div>}
+    <div className="rep">
+      <h1 className="rep-heading">Student Performance</h1>
 
-      <div className="row mb-3 align-items-center">
-        <div className="col-md-3">
-          <Form.Group controlId="dateFilter">
-            <DatePicker
-              selected={selectedDate}
-              onChange={(date) => setSelectedDate(date)}
-              dateFormat="dd/MM/yyyy"
-              className="form-control"
-              wrapperClassName="d-block"
+      {/* Per-course summary cards */}
+      {courseGroups.length > 0 && (
+        <div className="rep-cards">
+          {courseGroups.map(({ course, students: list }) => (
+            <CourseCard
+              key={course}
+              course={course}
+              students={list}
+              attendance={attendance}
+              track={track}
+              centerColor={centerColor}
             />
-          </Form.Group>
+          ))}
         </div>
-        <div className="col-md-3">
-          <select
-            id="courseFilter"
-            className="form-select"
-            value={selectedCourse}
-            onChange={(e) => setSelectedCourse(e.target.value)}
-          >
-            <option value="All">All Courses</option>
-            {courses.map((course, index) => (
-              <option key={index} value={course}>{course}</option>
-            ))}
-          </select>
-        </div>
-        <div className="col-md-3">
-          <select
-            id="batchFilter"
-            className="form-select"
-            value={selectedBatch}
-            onChange={(e) => setSelectedBatch(e.target.value)}
-          >
-            <option value="All">All Batches</option>
-            {batches.map((batch, index) => (
-              <option key={index} value={batch}>{batch}</option>
-            ))}
-          </select>
-        </div>
-        <div className="col-md-3">
-          <h6 className="mb-1">{moment(selectedDate).format('YYYY-MM-DD')}:</h6>
-          <div>
-            <span className="badge" style={{ color : 'white' , backgroundColor: '#A45EE5' }}>Present: {presentCount}</span>
-            <span className="badge ms-2" style={{ color : 'white' ,  backgroundColor: '#757575' }}>Absent: {absentCount}</span>
+      )}
+
+      <div className="rep-main">
+        <div className="rep-left">
+          {/* Filters */}
+          <div className="rep-filters">
+            {filterSelect('course', 'Course', options.courses)}
+            {filterSelect('batch', 'Batch', options.batches)}
+            {filterSelect('month', 'Year', options.months)}
+            {filterSelect('mode', 'Mode', options.modes)}
+            <button className="rep-generate" onClick={() => setApplied(draft)}>
+              Generate Report
+            </button>
+          </div>
+
+          {/* Table */}
+          <div className="rep-table-card">
+            <h2 className="rep-table-title">{reportTitle} Report</h2>
+            {notice && <p className="rep-notice">{notice}</p>}
+
+            <div className="rep-table-scroll">
+              <table className="rep-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Student name</th>
+                    <th>Batch</th>
+                    <th>Mode</th>
+                    <th>Total Present Day</th>
+                    <th>Total Absence Day</th>
+                    <th>Edit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.length ? (
+                    rows.map((student, index) => (
+                      <tr key={student._id}>
+                        <td>{index + 1}</td>
+                        <td>{student.name}</td>
+                        <td>{student.batch || '—'}</td>
+                        <td className="rep-mode">{student.modeOfLearning || '—'}</td>
+                        <td>{student.present}</td>
+                        <td>{student.absent}</td>
+                        <td>
+                          <button
+                            className="rep-edit"
+                            onClick={() => openEdit(student)}
+                            aria-label={`Edit ${student.name}`}
+                          >
+                            <Pencil size={16} strokeWidth={1.75} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="rep-table-empty">
+                        No students match these filters.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
+
+        {/* Overall performance */}
+        <aside className="rep-side">
+          <h2 className="rep-side-title">{reportTitle}</h2>
+          <div className="rep-side-chart">
+            <Bar data={barData} options={barOptions} />
+          </div>
+          <p className="rep-side-caption">Overall Performance</p>
+        </aside>
       </div>
 
-      <Accordion>
-        {filteredStudents.map((student, index) => (
-          <div key={student._id}>
-            <CustomToggle eventKey={index.toString()} onClick={() => setSelectedStudent(student._id)}>
-              {student.name}
-            </CustomToggle>
-            <Accordion.Collapse eventKey={index.toString()}>
-              <Card.Body>
-                <div className="row">
-                  <div className="col-md-4">
-                    <div className="calendar-container">
-                      <Calendar
-                        tileClassName={({ date, view }) => getTileClassName({ date, view }, student._id)}
-                        onActiveStartDateChange={handleActiveStartDateChange}
-                        className="custom-calendar"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-4">
-                    <h5>Attendance Summary for {student.name} ({selectedMonth}):</h5>
-                    <p>
-                      <span className="badge" style={{ backgroundColor: '#A45EE5' }}>Present: {calculateStudentAttendanceCounts(student._id, selectedMonth).presentCount}</span>
-                      <span className="badge ms-2" style={{ backgroundColor: '#757575' }}>Absent: {calculateStudentAttendanceCounts(student._id, selectedMonth).absentCount}</span>
-                      <span className="badge ms-2" style={{ backgroundColor: '#CF9CFF' }}>Present: {calculateStudentAttendanceCounts(student._id, selectedMonth).presentPercentage}%</span>
-                      <span className="badge ms-2" style={{ backgroundColor: '#D9DD9' }}>Absent: {calculateStudentAttendanceCounts(student._id, selectedMonth).absentPercentage}%</span>
-                    </p>
-                  </div>
-                  <div className="col-md-4">
-                    <h5>Attendance Pie Chart for {student.name} ({selectedMonth}):</h5>
-                    {renderPieChart(student._id, selectedMonth)}
-                  </div>
-                </div>
-              </Card.Body>
-            </Accordion.Collapse>
-          </div>
-        ))}
-      </Accordion>
+      {/* Edit dialog */}
+      {editing && (
+        <div className="rep-modal-backdrop" onClick={() => setEditing(null)}>
+          <form
+            className="rep-modal"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={saveEdit}
+          >
+            <header className="rep-modal-head">
+              <h3>Edit {editing.name}</h3>
+              <button type="button" onClick={() => setEditing(null)} aria-label="Close">
+                <X size={18} />
+              </button>
+            </header>
+
+            <label className="rep-modal-field">
+              <span>Batch</span>
+              <select
+                value={editForm.batch}
+                onChange={(e) => setEditForm({ ...editForm, batch: e.target.value })}
+              >
+                <option value="">Select batch</option>
+                {options.batches.map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="rep-modal-field">
+              <span>Mode</span>
+              <select
+                value={editForm.modeOfLearning}
+                onChange={(e) => setEditForm({ ...editForm, modeOfLearning: e.target.value })}
+              >
+                <option value="">Select mode</option>
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+              </select>
+            </label>
+
+            <button type="submit" className="rep-modal-save" disabled={saving}>
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,13 +1,25 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+// The provider loads Google's script on mount, so only mount it when a client
+// ID is configured. Without one the app runs normally, minus the Google button.
+const withGoogle = (children) =>
+  googleClientId ? (
+    <GoogleOAuthProvider clientId={googleClientId}>{children}</GoogleOAuthProvider>
+  ) : (
+    children
+  );
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    {withGoogle(<App />)}
   </React.StrictMode>
 );
 
