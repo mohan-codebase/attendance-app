@@ -5,13 +5,16 @@ const dotenv = require("dotenv");
 const axios = require("axios");
 const userRoutes = require("./routes/userRoutes");
 const requireAuth = require("./middleware/auth");
+const User = require("./models/User");
 
-dotenv.config();
+const path = require("path");
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:3000" }));
 app.use(express.json());
 
 // Public auth routes (register/login) must be mounted before the auth gate below
@@ -20,10 +23,7 @@ app.use("/api/users", userRoutes);
 // Everything else under /api requires a valid token
 app.use("/api", requireAuth);
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log("MongoDB connected"))
+mongoose.connect(process.env.MONGO_URI).then(() => console.log("MongoDB connected"))
   .catch(err => {
     console.error("MongoDB connection failed", err);
     process.exit(1);
@@ -227,17 +227,6 @@ app.post("/api/events", async (req, res) => {
   try {
     const newEvent = new Event(req.body);
     await newEvent.save();
-
-    // Set a reminder one day before the event
-    const reminderDate = new Date(newEvent.start);
-    reminderDate.setDate(reminderDate.getDate() - 1);
-    await axios.post('http://localhost:5000/api/reminders', {
-      title: `Reminder: ${newEvent.title}`,
-      start: reminderDate,
-      end: reminderDate,
-      allDay: true,
-    });
-
     // Return the newly added event
     res.status(201).json({ message: "Event added successfully!", event: newEvent });
   } catch (error) {
@@ -274,17 +263,35 @@ app.delete("/api/events/:id", async (req, res) => {
   }
 });
 
-// Settings 
+// User profile endpoints (Settings & Auth)
 app.get('/api/user', async (req, res) => {
   try {
-    // Replace this with actual logic to fetch user details from the database
-    const user = {
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-    };
+    const user = await User.findById(req.userId).select('-password');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ error: 'Error fetching user details' });
+  }
+});
+
+app.put('/api/user', async (req, res) => {
+  try {
+    const { name, email, instituteName, mobileNumber } = req.body;
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { name, email, instituteName, mobileNumber },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json({ message: 'User updated successfully', user: updatedUser });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Error updating user details' });
   }
 });
 

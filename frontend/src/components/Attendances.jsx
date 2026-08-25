@@ -86,9 +86,6 @@ const Attendances = () => {
     fetchAttendanceForDate();
   }, [selectedDate]);
 
-  const presentCount = filteredStudents.filter(student => attendanceStatus[student._id] === "Present").length;
-  const absentCount = filteredStudents.filter(student => attendanceStatus[student._id] === "Absent").length;
-
   if (loading) return <div className="container mt-4">Loading...</div>;
   if (error) return <div className="container mt-4 text-danger">{error}</div>;
 
@@ -96,14 +93,9 @@ const Attendances = () => {
     try {
       const attendanceData = { studentId, date: selectedDate, status };
       await api.post('/api/attendance', attendanceData);
-      setMessage(`Attendance marked as ${status} on ${moment(selectedDate).format('YYYY-MM-DD')}`);
+      setMessage(`Attendance for student marked as ${status} on ${moment(selectedDate).format('YYYY-MM-DD')}`);
       
-      // Remove the student from the filtered list after attendance is marked
-      setFilteredStudents(prevFilteredStudents => 
-        prevFilteredStudents.filter(student => student._id !== studentId)
-      );
-      
-      // Update the attendanceStatus for the student as well
+      // Update the attendanceStatus for the student
       setAttendanceStatus(prev => ({ ...prev, [studentId]: status }));
     } catch (error) {
       console.error('Error marking attendance:', error);
@@ -111,26 +103,31 @@ const Attendances = () => {
     }
   };
 
+  const totalFiltered = filteredStudents.length;
+  const markedPresent = filteredStudents.filter(s => attendanceStatus[s._id] === "Present").length;
+  const markedAbsent = filteredStudents.filter(s => attendanceStatus[s._id] === "Absent").length;
+  const unmarked = totalFiltered - (markedPresent + markedAbsent);
+
   return (
     <Container fluid>
       <div className="shadow-sm mb-4">
         <div className='d-flex justify-content-between py-2'>
           <div className='d-flex'>
-            <p className="ms-2 mt-2">Mark Attendance</p>
+            <p className="ms-2 mt-2 font-weight-bold">Mark Attendance</p>
           </div>
           <img src={bell} alt="Notification" style={{ height: '20px' }} />
         </div>
 
-        {message && <div className="alert alert-info">{message}</div>}
+        {message && <div className="alert alert-info py-2">{message}</div>}
 
-        <Row className="g-3 mb-4">
+        <Row className="g-3 mb-3">
           <Col md={4}>
             <Form.Group controlId="courseFilter">
               <Form.Select
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
               >
-                <option value="All">Filter by Course:</option>
+                <option value="All">Filter by Course: All</option>
                 {courses.map((course, index) => (
                   <option key={index} value={course}>{course}</option>
                 ))}
@@ -154,7 +151,7 @@ const Attendances = () => {
                 value={selectedBatch}
                 onChange={(e) => setSelectedBatch(e.target.value)}
               >
-                <option value="All">Filter by Batch:</option>
+                <option value="All">Filter by Batch: All</option>
                 {batches.map((batch, index) => (
                   <option key={index} value={batch}>{batch}</option>
                 ))}
@@ -163,47 +160,69 @@ const Attendances = () => {
           </Col>
         </Row>
 
-        <div className="mb-">
-          <h4>Student Lists</h4>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h4 className="mb-0">Student List ({totalFiltered})</h4>
+          <div>
+            <span className="badge bg-success me-2">Present: {markedPresent}</span>
+            <span className="badge bg-danger me-2">Absent: {markedAbsent}</span>
+            <span className="badge bg-secondary">Unmarked: {unmarked}</span>
+          </div>
         </div>
 
-        <ListGroup>
-          {filteredStudents.map((student) => (
-            <ListGroup.Item 
-              key={student._id} 
-              className="d-flex p-2 justify-content-between align-items-center student-list-item"
-            >
-              <div className="d-flex align-items-center">
-                <FaUserGraduate 
-                  style={{
-                    fontSize: '40px',
-                    marginRight: '10px',
-                    color: '#6c757d'
-                  }} 
-                />
-                <strong>{student.name}</strong>
-              </div>
-              <div>
-                <Button
-                  variant="success"
-                  size="sm"
-                  className="me-2 mb-2 rounded-circle px-3 py-2"
-                  onClick={() => markAttendance(student._id, "Present")}
+        {filteredStudents.length === 0 ? (
+          <p className="text-muted text-center py-4">No students found matching current filters.</p>
+        ) : (
+          <ListGroup>
+            {filteredStudents.map((student) => {
+              const currentStatus = attendanceStatus[student._id];
+              return (
+                <ListGroup.Item 
+                  key={student._id} 
+                  className="d-flex p-3 justify-content-between align-items-center student-list-item"
                 >
-                  P
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  className="mb-2 px-3 py-2 rounded-circle"
-                  onClick={() => markAttendance(student._id, "Absent")}
-                >
-                  A
-                </Button>
-              </div>
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
+                  <div className="d-flex align-items-center">
+                    <FaUserGraduate 
+                      style={{
+                        fontSize: '32px',
+                        marginRight: '12px',
+                        color: '#6c757d'
+                      }} 
+                    />
+                    <div>
+                      <strong className="d-block">{student.name}</strong>
+                      <small className="text-muted">{student.course} • Batch {student.batch}</small>
+                    </div>
+                  </div>
+                  <div className="d-flex align-items-center gap-2">
+                    {currentStatus ? (
+                      <span className={`badge ${currentStatus === 'Present' ? 'bg-success' : 'bg-danger'} me-2`}>
+                        {currentStatus}
+                      </span>
+                    ) : (
+                      <span className="badge bg-light text-dark border me-2">Not marked</span>
+                    )}
+                    <Button
+                      variant={currentStatus === "Present" ? "success" : "outline-success"}
+                      size="sm"
+                      className="px-3"
+                      onClick={() => markAttendance(student._id, "Present")}
+                    >
+                      P
+                    </Button>
+                    <Button
+                      variant={currentStatus === "Absent" ? "danger" : "outline-danger"}
+                      size="sm"
+                      className="px-3"
+                      onClick={() => markAttendance(student._id, "Absent")}
+                    >
+                      A
+                    </Button>
+                  </div>
+                </ListGroup.Item>
+              );
+            })}
+          </ListGroup>
+        )}
       </div>
     </Container>
   );

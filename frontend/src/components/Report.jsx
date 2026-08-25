@@ -180,16 +180,63 @@ const Report = () => {
     );
   }
 
+  // Export to CSV
+  const exportCSV = () => {
+    const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
+    const headers = [
+      'Student Name',
+      'Course',
+      'Batch',
+      'Email',
+      'Mobile',
+      `Status on ${formattedDate}`,
+      `Present Days (${selectedMonth})`,
+      `Absent Days (${selectedMonth})`,
+      `Attendance Rate % (${selectedMonth})`
+    ];
+
+    const rows = filteredStudents.map(student => {
+      const stats = calculateStudentAttendanceCounts(student._id, selectedMonth);
+      const statusToday = attendanceStatus[student._id]?.[formattedDate] || 'Unmarked';
+      return [
+        `"${(student.name || '').replace(/"/g, '""')}"`,
+        `"${(student.course || '').replace(/"/g, '""')}"`,
+        `"${(student.batch || '').replace(/"/g, '""')}"`,
+        `"${(student.email || '').replace(/"/g, '""')}"`,
+        `"${(student.mobile || '').replace(/"/g, '""')}"`,
+        `"${statusToday}"`,
+        stats.presentCount,
+        stats.absentCount,
+        `"${stats.presentPercentage}%"`
+      ];
+    });
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `attendance_report_${selectedMonth}_${formattedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Loading and Error States
   if (loading) return <div className="container mt-4">Loading...</div>;
   if (error) return <div className="container mt-4 text-danger">{error}</div>;
 
   return (
     <div className="container mt-4">
-      <h2>Report</h2>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2 className="mb-0">Attendance Report</h2>
+        <Button variant="outline-primary" onClick={exportCSV} disabled={filteredStudents.length === 0}>
+          <i className="bi bi-download me-1"></i> Export CSV
+        </Button>
+      </div>
       {message && <div className="alert alert-info">{message}</div>}
 
-      <div className="row mb-3">
+      <div className="row mb-3 align-items-center">
         <div className="col-md-3">
           <Form.Group controlId="dateFilter">
             <DatePicker
@@ -208,7 +255,7 @@ const Report = () => {
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
           >
-            <option value="All">All</option>
+            <option value="All">All Courses</option>
             {courses.map((course, index) => (
               <option key={index} value={course}>{course}</option>
             ))}
@@ -221,18 +268,18 @@ const Report = () => {
             value={selectedBatch}
             onChange={(e) => setSelectedBatch(e.target.value)}
           >
-            <option value="All">All</option>
+            <option value="All">All Batches</option>
             {batches.map((batch, index) => (
               <option key={index} value={batch}>{batch}</option>
             ))}
           </select>
         </div>
         <div className="col-md-3">
-          <h4>{moment(selectedDate).format('YYYY-MM-DD')}:</h4>
-          <p>
+          <h6 className="mb-1">{moment(selectedDate).format('YYYY-MM-DD')}:</h6>
+          <div>
             <span className="badge" style={{ color : 'white' , backgroundColor: '#A45EE5' }}>Present: {presentCount}</span>
             <span className="badge ms-2" style={{ color : 'white' ,  backgroundColor: '#757575' }}>Absent: {absentCount}</span>
-          </p>
+          </div>
         </div>
       </div>
 
@@ -276,16 +323,5 @@ const Report = () => {
     </div>
   );
 };
-
-// Custom Toggle Component for Accordion
-function CustomToggle({ children, eventKey, onClick }) {
-  const decoratedOnClick = useAccordionButton(eventKey, onClick);
-
-  return (
-    <Button variant="link" onClick={decoratedOnClick}>
-      {children}
-    </Button>
-  );
-}
 
 export default Report;

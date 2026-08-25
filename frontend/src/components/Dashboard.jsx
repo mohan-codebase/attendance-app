@@ -8,21 +8,22 @@ import dashboard from '../img/dashboard.png';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-// Static Upcoming Classes Data
-const upcomingClasses = [
-  { _id: "1", title: "Fullstack Development", date: "2025-02-28T09:30:00.000Z", batch: "9.30" },
-  { _id: "2", title: "UI/UX", date: "2025-02-28T10:30:00.000Z", batch: "10.30" },
-  { _id: "3", title: "Graphics Design", date: "2025-02-28T11:30:00.000Z", batch: "11.30" },
-  { _id: "4", title: "Creator Course", date: "2025-02-28T12:30:00.000Z", batch: "12.30" },
-  { _id: "5", title: "Digital Marketing", date: "2025-02-28T13:30:00.000Z", batch: "1.30" },
-  { _id: "6", title: "Web Design", date: "2025-02-28T14:30:00.000Z", batch: "2.30" },
-  { _id: "7", title: "Video Editing", date: "2025-02-28T15:30:00.000Z", batch: "3.30" },
-  { _id: "8", title: "Machine Learning", date: "2025-02-28T16:30:00.000Z", batch: "4.30" },
-  { _id: "9", title: "App Development", date: "2025-02-28T17:30:00.000Z", batch: "5.30" },
+// Default upcoming fallback classes if no calendar events are scheduled yet
+const defaultUpcomingClasses = [
+  { _id: "1", title: "Fullstack Development", date: new Date().toISOString(), batch: "9.30" },
+  { _id: "2", title: "UI/UX", date: new Date().toISOString(), batch: "10.30" },
+  { _id: "3", title: "Graphics Design", date: new Date().toISOString(), batch: "11.30" },
+  { _id: "4", title: "Creator Course", date: new Date().toISOString(), batch: "12.30" },
+  { _id: "5", title: "Digital Marketing", date: new Date().toISOString(), batch: "1.30" },
+  { _id: "6", title: "Web Design", date: new Date().toISOString(), batch: "2.30" },
+  { _id: "7", title: "Video Editing", date: new Date().toISOString(), batch: "3.30" },
+  { _id: "8", title: "Machine Learning", date: new Date().toISOString(), batch: "4.30" },
+  { _id: "9", title: "App Development", date: new Date().toISOString(), batch: "5.30" },
 ];
 
 const Dashboard = () => {
   const [admissions, setAdmissions] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [attendance, setAttendance] = useState([]);
@@ -48,6 +49,18 @@ const Dashboard = () => {
     }
   };
 
+  // Fetch Events / Classes Data
+  const fetchEvents = async () => {
+    try {
+      const response = await api.get('/api/events');
+      if (response.data && response.data.length > 0) {
+        setEvents(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching events:', err);
+    }
+  };
+
   // Fetch Attendance Data
   const fetchAttendance = async () => {
     try {
@@ -63,14 +76,25 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchAdmissions();
+    fetchEvents();
     fetchAttendance();
     setShowWelcomePopup(true);
     const timer = setTimeout(() => setShowWelcomePopup(false), 2000);
     return () => clearTimeout(timer);
   }, []);
 
+  // Use live events if available, otherwise use default schedule
+  const activeClassList = events.length > 0
+    ? events.map(e => ({
+        _id: e._id,
+        title: e.title || e.course,
+        date: e.start || new Date().toISOString(),
+        batch: e.batch || "Regular"
+      }))
+    : defaultUpcomingClasses;
+
   // Sort Upcoming Classes by Date and Batch
-  const sortedClasses = [...upcomingClasses].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const sortedClasses = [...activeClassList].sort((a, b) => new Date(a.date) - new Date(b.date));
   const batchOrder = ["9.30", "10.30", "11.30", "12.30", "1.30", "2.30", "3.30", "4.30", "5.30"];
   const batchTimesMapping = batchOrder.reduce((acc, batch) => {
     const [hour, minute] = batch.split('.').map(Number);
@@ -80,8 +104,17 @@ const Dashboard = () => {
 
   const now = moment();
   const nextBatchIndex = batchOrder.findIndex((batch) => now.isBefore(moment().set(batchTimesMapping[batch])));
-  const rotatedBatchOrder = [...batchOrder.slice(nextBatchIndex), ...batchOrder.slice(0, nextBatchIndex)];
-  const sortedClassesByBatch = [...sortedClasses].sort((a, b) => rotatedBatchOrder.indexOf(a.batch) - rotatedBatchOrder.indexOf(b.batch));
+  const rotatedBatchOrder = nextBatchIndex >= 0 
+    ? [...batchOrder.slice(nextBatchIndex), ...batchOrder.slice(0, nextBatchIndex)]
+    : batchOrder;
+  const sortedClassesByBatch = [...sortedClasses].sort((a, b) => {
+    const idxA = rotatedBatchOrder.indexOf(a.batch);
+    const idxB = rotatedBatchOrder.indexOf(b.batch);
+    if (idxA === -1 && idxB === -1) return 0;
+    if (idxA === -1) return 1;
+    if (idxB === -1) return -1;
+    return idxA - idxB;
+  });
 
   // Auto-scroll Effect for Upcoming Classes
   useEffect(() => {
@@ -283,7 +316,10 @@ const Dashboard = () => {
           <h1 className="text-start">Our Courses</h1>
           <h5 className="text-start mb-4">Number of Students in Each Course</h5>
         </div>
-        {['Fullstack Development', 'UI/UX', 'Creator Course', 'Graphics Design'].map((course) => (
+        {(Object.keys(groupedAdmissions).length > 0
+          ? Object.keys(groupedAdmissions)
+          : ['Fullstack Development', 'UI/UX', 'Creator Course', 'Graphics Design']
+        ).map((course) => (
           <div className="dashboard-card" key={course}>
             <div className="dashboard-card-content">
               <div>
