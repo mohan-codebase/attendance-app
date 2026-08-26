@@ -83,10 +83,14 @@ const Sidebar = ({ setIsAuthenticated }) => {
         if (userInfo) {
           setUser(userInfo);
         } else {
-          navigate('/login');
+          // A token with no profile behind it is a half-written session. Just
+          // navigating away left the token in place, so Login sent us straight
+          // back to /dashboard, which landed here again — an endless redirect
+          // loop that hung the tab. Clear the session so /login sticks.
+          handleLogout();
         }
       } catch {
-        navigate('/login');
+        handleLogout();
       }
     }
 
@@ -99,7 +103,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
       window.removeEventListener('mousemove', handleActivity);
       window.removeEventListener('keydown', handleActivity);
     };
-  }, [setIsAuthenticated, navigate, handleActivity, resetTimeout]);
+  }, [setIsAuthenticated, navigate, handleActivity, resetTimeout, handleLogout]);
 
   // Close the mobile drawer on navigation, and reveal the section you land in.
   useEffect(() => {

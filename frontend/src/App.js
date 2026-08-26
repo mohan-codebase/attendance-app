@@ -18,17 +18,20 @@ import ThemeToggle from './components/ThemeToggle';
 import './App.css';
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Read the token during the first render, not in an effect. Starting at false
+  // meant a deep link like /attendances was evaluated while still "logged out",
+  // so the route redirected to /login, whose own effect then saw the token and
+  // sent you to /dashboard — every deep link, refresh and bookmark landed on
+  // the dashboard instead of the page asked for. An expired token still gets
+  // cleared by the 401 interceptor in api.js.
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => Boolean(localStorage.getItem('authToken'))
+  );
   // Restore the saved choice; Settings writes it as 'preferredTheme'.
   // Without this the theme silently resets to 'system' on every reload.
   const [theme, setTheme] = useState(() => localStorage.getItem('preferredTheme') || 'system');
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      setIsAuthenticated(true);
-    }
-
     // Apply theme
     const applyTheme = (theme) => {
       if (theme === 'dark') {
