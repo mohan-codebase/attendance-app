@@ -1,0 +1,84 @@
+/* ===========================
+   Brand wordmark
+   ===========================
+   Geometry of img/logo.png, measured from the file: 138x34 overall, with the
+   purple figure occupying x 67-94. Every percentage below comes from those
+   numbers, so they all move together if the asset is ever replaced. */
+
+.brand-logo {
+  position: relative;
+  display: inline-block;
+  height: 26px;
+  aspect-ratio: 138 / 34;
+  flex-shrink: 0;
+  vertical-align: middle;
+  /* A flex parent stretches its children by default, which would override
+     aspect-ratio and squash the artwork sideways. */
+  align-self: flex-start;
+}
+
+.brand-logo-word {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-image: url('../img/logo.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* Light theme shows the artwork as-is, so the overlay is not needed */
+.brand-logo-mark {
+  display: none;
+}
+
+/* Dark theme: the near-black lettering has almost no contrast on the dark
+   surfaces, so it is flipped to white. That would bleach the figure too, so the
+   figure is painted back over the top from the untouched original. The clip
+   window is pulled ~0.5px inside the figure on each side: the neighbouring
+   letters start 1px away, and a sliver of dark letter would read as a smudge,
+   whereas a hairline of white arm tip is invisible. */
+[data-theme='dark'] .brand-logo-word {
+  filter: brightness(0) invert(1);
+}
+
+[data-theme='dark'] .brand-logo-mark {
+  display: block;
+  position: absolute;
+  inset: 0;
+  background-image: url('../img/logo.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  clip-path: inset(0 31.5% 0 48.9%);
+}
+
+/* Icon-only mark: the 28x34 figure alone.
+   background-size 492.86% = 138/28; position 60.91% lands x=67 at the left
+   edge (offset -67/28 of the box, over a track of 1 - 138/28 boxes). */
+.brand-mark {
+  display: block;
+  width: 22px;
+  height: 27px;
+  background-image: url('../img/logo.png');
+  background-size: 492.86% 100%;
+  background-position: 60.91% 0;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+/* --- Placements --- */
+
+/* Signed-out top bars (landing, login, register) */
+.brand-logo--nav {
+  height: 28px;
+}
+
+@media (max-width: 575.98px) {
+  .brand-logo--nav {
+    height: 22px;
+  }
+}
+
+/* Sidebar brand bar */
+.brand-logo--sidebar {
+  height: 24px;
+}

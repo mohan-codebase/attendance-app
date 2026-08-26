@@ -17,7 +17,7 @@ import {
   X,
 } from 'lucide-react';
 
-import logo from '../img/logo.png';
+import { BrandLogo, BrandMark } from './Brand';
 import '../css/Sidebar.css';
 
 // Grouped navigation. Items with `children` get a disclosure chevron.
@@ -174,12 +174,14 @@ const Sidebar = ({ setIsAuthenticated }) => {
       >
         {/* Brand */}
         <div className="sidebar-brandbar">
-          <img src={logo} alt="" className="sidebar-brand-avatar" />
-          {showLabels && (
+          {showLabels ? (
             <div className="sidebar-brand-text">
+              <BrandLogo className="brand-logo--sidebar" />
               <span className="sidebar-brand-eyebrow">Attendance Management</span>
-              <span className="sidebar-brand-name">Present sir</span>
             </div>
+          ) : (
+            /* The rail is 76px wide, so only the figure fits */
+            <BrandMark />
           )}
           <button
             className="sidebar-collapse-btn"

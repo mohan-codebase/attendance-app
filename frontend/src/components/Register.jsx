@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import Modal from './Model'; // Import the Modal component
 import GoogleAuthButton from './GoogleAuthButton';
+import { BrandLogo } from './Brand';
 import person1 from '../img/character-1.png'; // Person 1
 import person2 from '../img/character-2.png'; // Person 2
 import '../css/Register.css'; // Import the Register.css file
@@ -153,7 +154,7 @@ const Register = ({ setIsAuthenticated }) => {
     <div className="register-container d-flex flex-column position-relative">
       {/* Navbar */}
       <nav className="navbar auth-nav w-100 px-3 px-sm-4 d-flex justify-content-between flex-nowrap">
-        <p className="mb-0">PresentSir</p>
+        <BrandLogo className="brand-logo--nav" />
         <div className="auth-nav-actions">
           <Link to='/Login'><button className="btn btn-light auth-nav-btn">Login</button></Link>
           <Link to='/Register'><button className="btn button-color auth-nav-btn">Register</button></Link>

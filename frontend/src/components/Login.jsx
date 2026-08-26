@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import Modal from './Model'; // Import the Modal component
 import GoogleAuthButton from './GoogleAuthButton';
-import Logo from '../img/logo.png'; // Logo
+import { BrandLogo } from './Brand';
 import person1 from '../img/character-1.png'; // Person 1
 import person2 from '../img/character-2.png'; // Person 2
 import '../css/Login.css'; // Import the Login.css file
@@ -126,7 +126,7 @@ const Login = ({ setIsAuthenticated }) => {
     return (
         <div className="login-container d-flex flex-column">
             <nav className="navbar navbar-light auth-nav w-100 px-3 px-sm-4 flex-nowrap">
-                <p className="mb-0">PresentSir</p>
+                <BrandLogo className="brand-logo--nav" />
                 <div className="auth-nav-actions">
                     <Link to='/Login'><button className="btn btn-light auth-nav-btn">Login</button></Link>
                     <Link to='/Register'><button className="btn button-color auth-nav-btn">Register</button></Link>

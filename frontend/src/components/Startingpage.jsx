@@ -2,6 +2,7 @@ import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link } from 'react-router-dom';
 import  amico  from '../img/amico.png';
+import { BrandLogo } from './Brand';
 import '../css/Startingpage.css';
 
 export const Startingpage = () => {
@@ -9,7 +10,7 @@ export const Startingpage = () => {
     <div className="container-fluid start-page d-flex flex-column">
       {/* Navbar */}
       <nav className="navbar auth-nav px-3 px-sm-4 flex-nowrap">
-        <p className="mb-0">PresentSir</p>
+        <BrandLogo className="brand-logo--nav" />
         <div className="auth-nav-actions">
           <Link to='/Login'><button className="btn btn-light border">Login</button></Link>
           <Link to='/Register'><button className="btn button-color">Register</button></Link>
