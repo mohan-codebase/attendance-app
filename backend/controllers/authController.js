@@ -1,7 +1,9 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
+const { sendMail } = require('../utils/mailer');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -130,4 +132,106 @@ const googleAuth = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser, googleAuth };
+// --- Password reset ---
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // one hour
+const MIN_PASSWORD_LENGTH = 8;
+
+// Only the hash is stored, so the raw token in the email is the sole key.
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
+
+const resetLink = (token) => {
+    const base = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+    return `${base}/reset-password/${token}`;
+};
+
+// Step 1: ask for a link.
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    // The same answer either way. Saying "no account with that email" would
+    // turn this endpoint into a way to find out who has an account here.
+    const generic = {
+        message: 'If that address has an account, a reset link is on its way.',
+    };
+
+    try {
+        const user = await User.findOne({ email });
+
+        // Unknown address, or a Google account, which has no password to reset.
+        // Both fall through to the same reply.
+        if (!user || user.authProvider !== 'local') return res.json(generic);
+
+        const token = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = hashToken(token);
+        user.resetPasswordExpires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+        await user.save();
+
+        const link = resetLink(token);
+
+        await sendMail({
+            to: user.email,
+            subject: 'Reset your PresentSir password',
+            text: [
+                `Hi ${user.name},`,
+                '',
+                'Use the link below to choose a new password. It works once and expires in an hour.',
+                '',
+                link,
+                '',
+                "If you didn't ask for this, you can ignore this email — your password stays as it is.",
+            ].join('\n'),
+            html: `<p>Hi ${user.name},</p>
+<p>Use the link below to choose a new password. It works once and expires in an hour.</p>
+<p><a href="${link}">Reset your password</a></p>
+<p style="color:#6c757d;font-size:13px">If you didn't ask for this, you can ignore this email — your password stays as it is.</p>`,
+        });
+
+        res.json(generic);
+    } catch (err) {
+        console.error('Error starting password reset:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Step 2: use the link.
+const resetPassword = async (req, res) => {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+        return res.status(400).json({ message: 'Token and new password are required' });
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+        return res
+            .status(400)
+            .json({ message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` });
+    }
+
+    try {
+        const user = await User.findOne({
+            resetPasswordToken: hashToken(token),
+            resetPasswordExpires: { $gt: new Date() },
+        });
+
+        // Covers all of: never issued, already used, expired, tampered with.
+        if (!user) {
+            return res.status(400).json({ message: 'This reset link is invalid or has expired' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+        // Clear it here so the link cannot be replayed.
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.json({ message: 'Password updated. You can sign in now.' });
+    } catch (err) {
+        console.error('Error resetting password:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+module.exports = { registerUser, loginUser, googleAuth, forgotPassword, resetPassword };

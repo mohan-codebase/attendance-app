@@ -199,7 +199,7 @@ const Login = ({ setIsAuthenticated }) => {
                                         />
                                         <label htmlFor="remember-me">Remember me</label>
                                     </div>
-                                    <a href="#" className="forget text-primary mt-4">Forgot password?</a>
+                                    <Link to="/forgot-password" className="forget text-primary mt-4">Forgot password?</Link>
                                 </div>
 
                                 <button type="submit" className="sign-in btn button-color auth-submit p-3 mt-4" disabled={loading}>

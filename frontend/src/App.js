@@ -13,6 +13,8 @@ import Register from './components/Register';
 import Startingpage from './components/Startingpage';
 import Dashboard from './components/Dashboard';
 import Help from './components/Help';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import ThemeToggle from './components/ThemeToggle';
 
 import './App.css';
@@ -91,6 +93,9 @@ const App = () => {
             <Route path="/help" element={<Help />} />
             <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
             <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />
+            {/* Public by definition: whoever needs these cannot sign in */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
           </Routes>
         </div>
