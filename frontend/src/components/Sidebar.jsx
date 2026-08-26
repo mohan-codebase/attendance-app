@@ -15,6 +15,7 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  Menu,
   X,
 } from 'lucide-react';
 
@@ -44,9 +45,6 @@ const navSections = [
   },
 ];
 
-// Kept in sync with the `max-width: 768px` breakpoint in Sidebar.css
-const MOBILE_QUERY = '(max-width: 768px)';
-
 const Sidebar = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -55,7 +53,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches
+    () => typeof window !== 'undefined' && window.innerWidth <= 768
   );
   const [expanded, setExpanded] = useState(() => ['/dashboard']);
 
@@ -85,10 +83,6 @@ const Sidebar = ({ setIsAuthenticated }) => {
         if (userInfo) {
           setUser(userInfo);
         } else {
-          // A token with no profile behind it is a half-written session. Just
-          // navigating away left the token in place, so Login sent us straight
-          // back to /dashboard, which landed here again — an endless redirect
-          // loop that hung the tab. Clear the session so /login sticks.
           handleLogout();
         }
       } catch {
@@ -113,17 +107,27 @@ const Sidebar = ({ setIsAuthenticated }) => {
     setExpanded((prev) => (prev.includes(location.pathname) ? prev : [...prev, location.pathname]));
   }, [location.pathname]);
 
-  // Follow the viewport so a desktop collapse doesn't leave the mobile drawer
-  // stuck as a 264px-wide icon rail after a rotate or resize.
+  // Follow the viewport so desktop/mobile layout remains in sync on resize
   useEffect(() => {
-    const mq = window.matchMedia(MOBILE_QUERY);
-    const handleChange = (e) => {
-      setIsMobile(e.matches);
-      if (!e.matches) setIsMobileOpen(false);
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) setIsMobileOpen(false);
     };
-    mq.addEventListener('change', handleChange);
-    return () => mq.removeEventListener('change', handleChange);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Escape key closes the mobile drawer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isMobileOpen) {
+        setIsMobileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobileOpen]);
 
   // Publish the rail width so .main-content can reclaim the space (App.css).
   useEffect(() => {
@@ -133,8 +137,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
     };
   }, [isMobile, isOpen]);
 
-  // Profile saves rewrite the cached copy, so the footer would otherwise show
-  // the old name until the next full load.
+  // Profile saves rewrite the cached copy, so the footer updates immediately
   useEffect(() => {
     const reread = () => {
       try {
@@ -154,8 +157,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
     return () => document.body.classList.remove('sidebar-drawer-open');
   }, [isMobileOpen]);
 
-  // A phone drawer is always the full-width version, whatever the desktop
-  // collapse state happens to be.
+  // A phone drawer is always the full-width version
   const showLabels = isMobile || isOpen;
 
   const isActive = (path) =>
@@ -173,25 +175,49 @@ const Sidebar = ({ setIsAuthenticated }) => {
 
   return (
     <>
-      <button
-        className={`sidebar-mobile-toggle ${isMobileOpen ? 'is-hidden' : ''}`}
-        onClick={() => setIsMobileOpen((prev) => !prev)}
-        aria-label="Open navigation"
-        aria-expanded={isMobileOpen}
-      >
-        <span className="hamburger-icon">
-          <span />
-          <span />
-          <span />
-        </span>
-      </button>
+      {/* Top mobile navigation bar */}
+      <header className="sidebar-mobile-bar">
+        <button
+          className="sidebar-mobile-toggle"
+          onClick={() => setIsMobileOpen(true)}
+          aria-label="Open navigation menu"
+          aria-expanded={isMobileOpen}
+        >
+          <Menu size={22} strokeWidth={2} />
+        </button>
 
-      {isMobileOpen && <div className="sidebar-overlay" onClick={() => setIsMobileOpen(false)} />}
+        <Link to="/dashboard" className="sidebar-mobile-brand" aria-label="PresentSir home">
+          <BrandLogo className="brand-logo--mobile" />
+        </Link>
 
+        {user ? (
+          <Link to="/profile" className="sidebar-mobile-user" title="My Profile" aria-label="My Profile">
+            {user.avatar ? (
+              <img src={user.avatar} alt={user.name || 'User'} className="sidebar-mobile-avatar" />
+            ) : (
+              <span className="sidebar-mobile-avatar sidebar-mobile-avatar-initials">{initials}</span>
+            )}
+          </Link>
+        ) : (
+          <div className="sidebar-mobile-spacer" />
+        )}
+      </header>
+
+      {/* Backdrop overlay for mobile drawer */}
+      {isMobileOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Main sidebar / mobile drawer */}
       <aside
         className={`sidebar ${showLabels ? 'sidebar-open' : 'sidebar-collapsed'} ${
           isMobileOpen ? 'sidebar-mobile-open' : ''
         }`}
+        aria-label="Sidebar navigation"
       >
         {/* Brand */}
         <div className="sidebar-brandbar">
@@ -201,21 +227,18 @@ const Sidebar = ({ setIsAuthenticated }) => {
               <span className="sidebar-brand-eyebrow">Attendance Management</span>
             </div>
           ) : (
-            /* The rail is 76px wide, so only the figure fits */
             <BrandMark />
           )}
-          {/* Closing a drawer belongs at its top corner; collapsing to the rail
-              is a different action and now lives down in the footer. */}
-          {isMobile && (
-            <button
-              className="sidebar-close-btn"
-              onClick={() => setIsMobileOpen(false)}
-              aria-label="Close navigation"
-              title="Close navigation"
-            >
-              <X size={18} />
-            </button>
-          )}
+
+          {/* Close button for mobile drawer */}
+          <button
+            className="sidebar-close-btn"
+            onClick={() => setIsMobileOpen(false)}
+            aria-label="Close navigation"
+            title="Close navigation"
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -236,6 +259,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
                         <Link
                           to={item.path}
                           className="sidebar-nav-link"
+                          onClick={() => setIsMobileOpen(false)}
                           title={!showLabels ? item.label : undefined}
                         >
                           <Icon size={19} strokeWidth={1.75} className="sidebar-nav-icon" />
@@ -263,6 +287,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
                                 className={`sidebar-subnav-link ${
                                   location.pathname === child.path ? 'active' : ''
                                 }`}
+                                onClick={() => setIsMobileOpen(false)}
                               >
                                 {child.label}
                               </Link>
@@ -281,7 +306,12 @@ const Sidebar = ({ setIsAuthenticated }) => {
         {/* Account + logout */}
         <div className="sidebar-footer">
           {user && (
-            <Link to="/profile" className="sidebar-account" title="View profile">
+            <Link
+              to="/profile"
+              className="sidebar-account"
+              title="View profile"
+              onClick={() => setIsMobileOpen(false)}
+            >
               {user.avatar ? (
                 <img src={user.avatar} alt="" className="sidebar-account-avatar" />
               ) : (
@@ -301,18 +331,16 @@ const Sidebar = ({ setIsAuthenticated }) => {
             {showLabels && <span>Logout Account</span>}
           </button>
 
-          {/* Pointless on a drawer, which is either open or dismissed */}
-          {!isMobile && (
-            <button
-              className="sidebar-collapse-btn"
-              onClick={() => setIsOpen((prev) => !prev)}
-              aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-              title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            >
-              {isOpen ? <PanelLeftClose size={17} strokeWidth={1.75} /> : <PanelLeftOpen size={17} strokeWidth={1.75} />}
-              {showLabels && <span>Collapse</span>}
-            </button>
-          )}
+          {/* Desktop collapse button */}
+          <button
+            className="sidebar-collapse-btn"
+            onClick={() => setIsOpen((prev) => !prev)}
+            aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            {isOpen ? <PanelLeftClose size={17} strokeWidth={1.75} /> : <PanelLeftOpen size={17} strokeWidth={1.75} />}
+            {showLabels && <span>Collapse</span>}
+          </button>
         </div>
       </aside>
     </>

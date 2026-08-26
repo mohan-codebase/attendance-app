@@ -465,8 +465,8 @@ body[data-sidebar='collapsed'] .main-content.with-sidebar {
   .main-content.with-sidebar,
   body[data-sidebar='collapsed'] .main-content.with-sidebar {
     margin-left: 0;
-    /* Clears the fixed hamburger, plus the iOS status-bar inset */
-    padding-top: calc(60px + env(safe-area-inset-top));
+    /* Clears the fixed top mobile navigation bar, plus the iOS status-bar inset */
+    padding-top: calc(56px + env(safe-area-inset-top) + 14px);
   }
 
   .main-content {

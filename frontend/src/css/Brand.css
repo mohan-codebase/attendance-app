@@ -82,3 +82,8 @@
 .brand-logo--sidebar {
   height: 24px;
 }
+
+/* Mobile top bar */
+.brand-logo--mobile {
+  height: 22px;
+}
