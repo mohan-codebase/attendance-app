@@ -57,6 +57,13 @@
 
   /* Icons: sidebar art is dark line-work, so it needs no filter on light */
   --icon-filter: none;
+
+  /* Sidebar geometry. It floats as a card, so the page has to leave room for
+     its width plus the gap on both sides. Kept here rather than in Sidebar.css
+     because the page gutter below is derived from the same numbers. */
+  --sidebar-width: 254px;
+  --sidebar-rail-width: 76px;
+  --sidebar-gap: 14px;
 }
 
 [data-theme='dark'] {
@@ -429,17 +436,49 @@ progress {
      card row) stretch the page instead of scrolling inside its own container. */
   min-width: 0;
   padding: 20px;
+  /* The floating theme toggle sits in the bottom-right corner, so every screen
+     keeps room beneath its last element — the attendance Submit button is full
+     width and lands exactly there. */
+  padding-bottom: 76px;
   transition: margin-left 0.3s ease;
 }
 
 .main-content.with-sidebar {
-  margin-left: 254px;
+  margin-left: calc(var(--sidebar-width) + var(--sidebar-gap) * 2);
+}
+
+/* The sidebar publishes its width on <body> (see Sidebar.jsx) so the page can
+   reclaim the space when it collapses to the 76px icon rail. Without this the
+   content kept a 254px gutter against a 76px rail. */
+body[data-sidebar='collapsed'] .main-content.with-sidebar {
+  margin-left: calc(var(--sidebar-rail-width) + var(--sidebar-gap) * 2);
+}
+
+/* Tablets: the rail costs less than the full drawer on a 1024px screen */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .main-content {
+    padding: 18px 16px;
+  }
 }
 
 @media (max-width: 768px) {
-  .main-content.with-sidebar {
+  .main-content.with-sidebar,
+  body[data-sidebar='collapsed'] .main-content.with-sidebar {
     margin-left: 0;
-    padding-top: 60px;
+    /* Clears the fixed top mobile navigation bar, plus the iOS status-bar inset */
+    padding-top: calc(56px + env(safe-area-inset-top) + 14px);
+  }
+
+  .main-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
 
@@ -637,6 +676,16 @@ progress {
 
 /* ===== react-datepicker ===== */
 
+/* The wrapper and input container are inline-block by default, so a field set
+   to width:100% only ever grew to its shrink-to-fit text width — leaving the
+   attendance date box short of its row and its calendar icon stranded. */
+.react-datepicker-wrapper,
+.react-datepicker__input-container,
+.att-date-wrapper {
+  display: block;
+  width: 100%;
+}
+
 .react-datepicker {
   background-color: var(--surface-color);
   color: var(--text-color);
@@ -763,34 +812,89 @@ progress {
 /* ===== Google sign-in ===== */
 
 .google-auth {
-  margin-top: 1.5rem;
+  position: relative;
+  margin-top: 10px;
 }
 
+/* Short rules either side of the word, as in the design */
 .google-auth-divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 1rem;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
   color: var(--text-muted-color);
   font-size: 13px;
+  font-style: italic;
 }
 
 .google-auth-divider::before,
 .google-auth-divider::after {
   content: '';
-  flex: 1;
+  flex: 0 0 14px;
   height: 1px;
   background-color: var(--border-color);
 }
 
-.google-auth-button {
+/* Full-width outlined button matching the primary action above it */
+.google-auth-btn {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 20px;
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.google-auth-button[aria-busy='true'] {
-  opacity: 0.6;
+.google-auth-btn:hover:not(:disabled) {
+  background-color: var(--day-hover-background-color);
+  border-color: var(--button-hover-background-color);
+}
+
+.google-auth-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem var(--input-focus-shadow-color);
+}
+
+.google-auth-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.google-auth-btn svg {
+  flex-shrink: 0;
+}
+
+.google-auth-hint {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted-color);
+}
+
+/* Google's own button. It has to stay rendered for its click handler to work,
+   but it is moved out of view because the visible button above forwards to it.
+   Not display:none — Google's script skips painting a hidden container. */
+.google-auth-native {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 300px;
+  overflow: hidden;
+  opacity: 0;
   pointer-events: none;
+}
+
+.google-auth[aria-busy='true'] .google-auth-btn {
+  opacity: 0.6;
 }
 
 /* ===== Slide-down animation ===== */
@@ -809,4 +913,99 @@ progress {
 
 .modal.show.slide-down {
   animation: slideDown 0.5s ease-out;
+}
+
+/* ===== Responsive foundations =====
+   Cross-cutting rules that keep every page inside the viewport on phones and
+   tablets. Page-level breakpoints live in each page's own stylesheet. */
+
+/* Rotating an iPhone inflates text unless this is pinned */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* A single overflowing child used to make the whole page pan sideways, which
+   also breaks the fixed sidebar's alignment. Media is the usual culprit. */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+/* Chart.js canvases are sized by JS; height comes from the wrapper */
+canvas {
+  height: auto;
+}
+
+/* Long unbroken values (emails, URLs) in tables and cards */
+table,
+.card,
+.list-group-item {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  /* Any Bootstrap table scrolls inside its own box rather than the page */
+  .table-responsive,
+  .table {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* iOS zooms the page in whenever a focused field is under 16px. The
+     page-level fields are listed with their parents because a bare element
+     selector loses to the class rule that sets their 13-14px size. */
+  .form-control,
+  .form-select,
+  input,
+  select,
+  textarea,
+  .att-filters .att-filter,
+  .att-date .att-date-input,
+  .att-search input,
+  .dash-search input,
+  .rep-filter .rep-filter-select,
+  .rep-modal-field select,
+  .adm-body .adm-input,
+  .adm-search input {
+    font-size: 16px;
+  }
+
+  /* Bootstrap's default dialog leaves 1rem of margin; phones need the width */
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+
+  /* Native modals (Model.jsx) are absolutely placed — keep them off the edges */
+  .modal .modal-body {
+    padding: 0.875rem 1rem;
+  }
+}
+
+/* Comfortable touch targets on anything that is tapped rather than clicked */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .form-select,
+  .form-control {
+    min-height: 44px;
+  }
+
+  .btn-sm,
+  .form-control-sm,
+  .form-select-sm {
+    min-height: 36px;
+  }
+}
+
+/* Respect the OS "reduce motion" setting across the app's transitions */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

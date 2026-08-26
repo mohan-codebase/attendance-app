@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import Modal from './Model'; // Import the Modal component
 import GoogleAuthButton from './GoogleAuthButton';
-import Logo from '../img/logo.png'; // Logo
+import { BrandLogo } from './Brand';
 import person1 from '../img/character-1.png'; // Person 1
 import person2 from '../img/character-2.png'; // Person 2
 import '../css/Login.css'; // Import the Login.css file
@@ -24,14 +24,14 @@ const Login = ({ setIsAuthenticated }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Earlier builds saved the password here in plaintext. Delete it on
+        // sight so devices that signed in before this change stop carrying it
+        // around; the browser's own password manager fills the field instead.
+        localStorage.removeItem('password');
+
         const savedEmail = localStorage.getItem('email');
-        const savedPassword = localStorage.getItem('password');
-        if (savedEmail && savedPassword) {
-            setFormData({
-                email: savedEmail,
-                password: savedPassword,
-                rememberMe: true,
-            });
+        if (savedEmail) {
+            setFormData((prev) => ({ ...prev, email: savedEmail, rememberMe: true }));
         }
 
         const token = localStorage.getItem('authToken');
@@ -42,16 +42,20 @@ const Login = ({ setIsAuthenticated }) => {
     }, [setIsAuthenticated, navigate]);
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        const { name, type, value, checked } = e.target;
+
+        // A checkbox's `value` is the string "on" whether it is ticked or not,
+        // so reading it here left "Remember me" stuck on once it was ticked.
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
 
         // Clear errors when user starts typing
-        if (e.target.name === 'email') {
+        if (name === 'email') {
             setEmailError('');
         }
-        if (e.target.name === 'password') {
+        if (name === 'password') {
             setPasswordError('');
         }
     };
@@ -97,12 +101,12 @@ const Login = ({ setIsAuthenticated }) => {
             localStorage.setItem('userInfo', JSON.stringify(response.data.user));
             setIsAuthenticated(true);
 
+            // The address only: a stored password is readable by any script on
+            // the page, and the session already survives a reload via authToken.
             if (rememberMe) {
                 localStorage.setItem('email', email);
-                localStorage.setItem('password', password);
             } else {
                 localStorage.removeItem('email');
-                localStorage.removeItem('password');
             }
 
             setModal({ show: true, message: 'Login successful!' });
@@ -124,15 +128,16 @@ const Login = ({ setIsAuthenticated }) => {
     };
 
     return (
-        <div className="login-container d-flex flex-column  vh-100">
-            <nav className="navbar navbar-light w-100 px-4">
-            <p>PresentSir</p>                  <div>
-                    <Link to='/Login'><button className="btn btn-light  me-3" style={{ padding: '10px 34px 14px 34px' }}>Login</button></Link>
-                    <Link to='/Register'><button className="btn button-color" style={{ padding: '10px 34px 14px 34px' }}>Register</button></Link>
+        <div className="login-container d-flex flex-column">
+            <nav className="navbar navbar-light auth-nav w-100 px-3 px-sm-4 flex-nowrap">
+                <BrandLogo className="brand-logo--nav" />
+                <div className="auth-nav-actions">
+                    <Link to='/Login'><button className="btn btn-light auth-nav-btn">Login</button></Link>
+                    <Link to='/Register'><button className="btn button-color auth-nav-btn">Register</button></Link>
                 </div>
             </nav>
 
-            <div className='d-flex align-items-center justify-content-center flex-grow-1 '>
+            <div className='d-flex align-items-center justify-content-center flex-grow-1 px-3 px-sm-4 py-4'>
                 <div className='vector1'>
                 </div>
                 <div className='vector2'>
@@ -183,7 +188,7 @@ const Login = ({ setIsAuthenticated }) => {
                                     )}
                                 </div>
 
-                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                <div className="d-flex justify-content-between align-items-center auth-options mb-3">
                                     <div className='remember mt-4 d-flex gap-1'>
                                         <input
                                             type="checkbox"
@@ -194,10 +199,10 @@ const Login = ({ setIsAuthenticated }) => {
                                         />
                                         <label htmlFor="remember-me">Remember me</label>
                                     </div>
-                                    <a href="#" className="forget text-primary mt-4">Forgot password?</a>
+                                    <Link to="/forgot-password" className="forget text-primary mt-4">Forgot password?</Link>
                                 </div>
 
-                                <button type="submit" className="sign-in btn button-color w-50 p-3 mt-4" disabled={loading}>
+                                <button type="submit" className="sign-in btn button-color auth-submit p-3 mt-4" disabled={loading}>
                                     {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : 'Sign In'}
                                 </button>
                             </form>

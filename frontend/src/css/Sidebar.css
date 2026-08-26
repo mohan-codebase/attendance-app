@@ -2,28 +2,43 @@
    Sidebar
    =========================== */
 
+/* A floating card rather than a full-height panel: inset on all four sides,
+   rounded, and lifted off the page with a shadow. Top and bottom are set
+   instead of a height so the card always spans the visible viewport — no 100vh
+   guesswork around the mobile URL bar — and both take the iPhone safe-area
+   insets into account. */
 .sidebar {
   position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
+  top: max(var(--sidebar-gap), env(safe-area-inset-top));
+  bottom: max(var(--sidebar-gap), env(safe-area-inset-bottom));
+  left: var(--sidebar-gap);
   display: flex;
   flex-direction: column;
   background-color: var(--sidebar-background-color);
   color: var(--sidebar-text-color);
-  border-right: 1px solid var(--border-subtle-color);
+  border: 1px solid var(--border-subtle-color);
+  border-radius: 18px;
+  box-shadow: 0 6px 24px rgba(20, 20, 40, 0.10);
   z-index: 1000;
-  overflow-x: hidden;
-  overflow-y: auto;
-  transition: width 0.3s ease;
+  /* Clipped, not scrollable: rounded corners would otherwise be cut through by
+     the scrolling content. The nav inside does the scrolling. */
+  overflow: hidden;
+  /* transform is listed for the mobile drawer, which slides rather than resizes */
+  transition: width 0.3s ease, transform 0.3s ease;
+}
+
+/* The page background is dark too, so the card needs a deeper shadow to read
+   as raised rather than just a slightly different rectangle. */
+[data-theme='dark'] .sidebar {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.38);
 }
 
 .sidebar-open {
-  width: 254px;
+  width: var(--sidebar-width);
 }
 
 .sidebar-collapsed {
-  width: 76px;
+  width: var(--sidebar-rail-width);
 }
 
 /* --- Brand --- */
@@ -37,18 +52,10 @@
   flex-shrink: 0;
 }
 
-.sidebar-brand-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  object-fit: cover;
-  background-color: var(--secondary-color);
-  flex-shrink: 0;
-}
-
 .sidebar-brand-text {
   display: flex;
   flex-direction: column;
+  gap: 5px;
   min-width: 0;
   flex: 1;
 }
@@ -64,50 +71,28 @@
   text-overflow: ellipsis;
 }
 
-.sidebar-brand-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-color);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Floated over the brand bar rather than inline, so the brand text keeps its
-   full width. Revealed on hover; always visible while collapsed. */
-.sidebar-collapse-btn {
+/* Dismisses the mobile drawer. Hidden by default on desktop. */
+.sidebar-close-btn {
   position: absolute;
   top: 50%;
-  right: 8px;
+  right: 10px;
   transform: translateY(-50%);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: 8px;
-  background-color: var(--sidebar-background-color);
+  background-color: transparent;
   color: var(--text-muted-color);
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.sidebar:hover .sidebar-collapse-btn,
-.sidebar-collapse-btn:focus-visible {
-  opacity: 1;
-}
-
-.sidebar-collapse-btn:hover {
+.sidebar-close-btn:hover {
   background-color: var(--day-hover-background-color);
   color: var(--primary-color);
-}
-
-.sidebar-collapsed .sidebar-collapse-btn {
-  position: static;
-  transform: none;
-  opacity: 1;
 }
 
 /* --- Navigation --- */
@@ -279,12 +264,28 @@
   border-top: 1px solid var(--border-subtle-color);
 }
 
+/* A link to the profile page since it carries the account's own details */
 .sidebar-account {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 4px 12px;
+  padding: 6px 6px 10px;
+  margin-bottom: 2px;
+  border-radius: 10px;
   min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-account:hover {
+  background-color: var(--day-hover-background-color);
+  text-decoration: none;
+  color: inherit;
+}
+
+.sidebar-account:hover .sidebar-account-org {
+  color: var(--primary-color);
 }
 
 .sidebar-account-avatar {
@@ -349,71 +350,248 @@
   color: #e5484d;
 }
 
-.sidebar-collapsed .sidebar-account,
-.sidebar-collapsed .sidebar-logout {
-  justify-content: center;
-}
-
-/* --- Mobile --- */
-.sidebar-mobile-toggle {
-  display: none;
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: 1100;
-  width: 40px;
-  height: 40px;
+/* Collapse / expand, now a row in the footer under logout. Styled to match it
+   so the two read as one group of controls rather than a stray icon. */
+.sidebar-collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 2px;
+  padding: 9px 10px;
   border: none;
   border-radius: 10px;
-  background-color: var(--primary-color);
+  background-color: transparent;
+  color: var(--text-muted-color);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  padding: 8px;
-  align-items: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-collapse-btn:hover {
+  background-color: var(--day-hover-background-color);
+  color: var(--primary-color);
+}
+
+.sidebar-collapse-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem var(--input-focus-shadow-color);
+}
+
+.sidebar-collapse-btn svg {
+  flex-shrink: 0;
+}
+
+.sidebar-collapsed .sidebar-account,
+.sidebar-collapsed .sidebar-logout,
+.sidebar-collapsed .sidebar-collapse-btn {
   justify-content: center;
 }
 
-.hamburger-icon {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 20px;
-}
-
-.hamburger-icon span {
-  display: block;
-  height: 2px;
-  background-color: #ffffff;
-  border-radius: 2px;
+/* --- Mobile Top Bar & Drawer --- */
+.sidebar-mobile-bar {
+  display: none;
 }
 
 .sidebar-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background-color: var(--overlay-color);
-  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 1030;
+  animation: sidebarOverlayFade 0.2s ease;
+}
+
+@keyframes sidebarOverlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
-    width: 264px !important;
+  /* Sleek top mobile navigation bar */
+  .sidebar-mobile-bar {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(54px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    padding-left: 14px;
+    padding-right: 14px;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 1px 4px rgba(20, 20, 40, 0.05);
+    z-index: 1000;
   }
 
-  .sidebar-mobile-open {
-    transform: translateX(0);
+  [data-theme='dark'] .sidebar-mobile-bar {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
   }
 
   .sidebar-mobile-toggle {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    background-color: var(--day-hover-background-color);
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 0;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.1s ease;
+    flex-shrink: 0;
+  }
+
+  .sidebar-mobile-toggle:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--primary-text-color);
+  }
+
+  .sidebar-mobile-toggle:active {
+    transform: scale(0.94);
+  }
+
+  .sidebar-mobile-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+
+  .brand-logo--mobile {
+    height: 22px;
+  }
+
+  .sidebar-mobile-user {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: inherit;
+    flex-shrink: 0;
+  }
+
+  .sidebar-mobile-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid var(--border-color);
+  }
+
+  .sidebar-mobile-avatar-initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-color);
+    color: var(--primary-text-color);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .sidebar-mobile-spacer {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  /* Full-height mobile drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(290px, 84vw) !important;
+    height: 100%;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    border-radius: 0 18px 18px 0;
+    border-left: none;
+    background-color: var(--surface-color);
+    box-shadow: 6px 0 32px rgba(0, 0, 0, 0.32);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 1040;
+  }
+
+  .sidebar.sidebar-mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--day-hover-background-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
+  }
+
+  .sidebar-close-btn:hover {
+    background-color: var(--primary-color);
+    color: var(--primary-text-color);
+    border-color: var(--primary-color);
+  }
+
+  .sidebar-collapse-btn {
+    display: none !important;
   }
 
   .sidebar-overlay {
     display: block;
   }
 
-  .sidebar-collapsed .sidebar-nav-link {
-    justify-content: flex-start;
-    padding: 10px 12px;
+  /* Touch-friendly rows */
+  .sidebar-nav-link {
+    padding: 12px 14px;
+    font-size: 14.5px;
   }
+
+  .sidebar-subnav-link {
+    padding: 10px 14px;
+    font-size: 13.5px;
+  }
+
+  .sidebar-logout {
+    padding: 12px 14px;
+    font-size: 14.5px;
+  }
+}
+
+/* Short landscape phones */
+@media (max-height: 520px) {
+  .sidebar-brandbar {
+    padding: 10px 16px;
+  }
+
+  .sidebar-section-label {
+    margin: 8px 0 4px 10px;
+  }
+
+  .sidebar-nav-link {
+    padding: 8px 12px;
+  }
+}
+
+/* Body scroll lock while drawer is open */
+body.sidebar-drawer-open {
+  overflow: hidden;
 }

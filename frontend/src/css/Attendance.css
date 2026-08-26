@@ -333,6 +333,30 @@
   }
 }
 
+@media (max-width: 560px) {
+  /* Same treatment as the dashboard: search gets its own full-width row */
+  .att-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .att-header-actions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .att-search {
+    flex: 1;
+    width: auto;
+    max-width: none;
+  }
+
+  .att-filter {
+    flex: 1 1 100%;
+  }
+}
+
 @media (max-width: 520px) {
   .att-row {
     padding: 12px 14px;
@@ -340,5 +364,36 @@
 
   .att-submit {
     width: 100%;
+  }
+
+  .att-footer {
+    margin-top: 18px;
+  }
+
+  .att-listtitle {
+    font-size: 17px;
+  }
+
+  /* Keep the P / L / A group intact and let the name truncate instead */
+  .att-row {
+    gap: 10px;
+  }
+
+  .att-actions {
+    gap: 8px;
+  }
+}
+
+/* Very narrow phones: the marks move under the name rather than shrinking to
+   an untappable size. */
+@media (max-width: 360px) {
+  .att-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .att-actions {
+    justify-content: flex-end;
   }
 }

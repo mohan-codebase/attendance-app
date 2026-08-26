@@ -47,6 +47,16 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
+  // Password reset. The token stored here is a SHA-256 hash of the one that
+  // goes out by email, so a leak of this collection cannot be used to reset
+  // anybody's password. Both fields are cleared the moment a reset succeeds.
+  resetPasswordToken: {
+    type: String,
+    index: true,
+  },
+  resetPasswordExpires: {
+    type: Date,
+  },
 }, {
   timestamps: true,
 });

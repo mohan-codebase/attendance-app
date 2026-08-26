@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import Modal from './Model'; // Import the Modal component
 import GoogleAuthButton from './GoogleAuthButton';
+import { BrandLogo } from './Brand';
 import person1 from '../img/character-1.png'; // Person 1
 import person2 from '../img/character-2.png'; // Person 2
 import '../css/Register.css'; // Import the Register.css file
@@ -150,118 +151,112 @@ const Register = ({ setIsAuthenticated }) => {
   };
 
   return (
-    <div className="register-container d-flex flex-column align-items-center justify-content-center vh-100 position-relative">
+    <div className="register-container d-flex flex-column position-relative">
       {/* Navbar */}
-      <nav className="navbar w-100 px-4 position-absolute top-0 start-0 d-flex justify-content-between">
-        <p>PresentSir</p>        <div>
-          <Link to='/Login'><button className="btn btn-light me-2" style={{ padding: '10px 34px 14px 34px' }}>Login</button></Link>
-          <Link to='/Register'><button className="btn button-color" style={{ padding: '10px 34px 14px 34px' }}>Register</button></Link>
+      <nav className="navbar auth-nav w-100 px-3 px-sm-4 d-flex justify-content-between flex-nowrap">
+        <BrandLogo className="brand-logo--nav" />
+        <div className="auth-nav-actions">
+          <Link to='/Login'><button className="btn btn-light auth-nav-btn">Login</button></Link>
+          <Link to='/Register'><button className="btn button-color auth-nav-btn">Register</button></Link>
         </div>
       </nav>
 
-      {/* Vector Image */}
-      <div className="d-flex justify-content-start align-items-start m-lg-5" >
-        <div className='vector'>
-          {/* <img src={Vector} alt="Vector" className="Vector" style={{ width: '80px', height: '60px' }} /> */}
-        </div>
-      </div>
+      {/* Decorative vectors — absolutely placed, hidden below lg (Register.css) */}
+      <div className='vector'></div>
+      <div className='vector1'></div>
 
-      {/* Vector Image */}
-      <div className="d-flex justify-content-start align-items-start m-lg-5" >
-        <div className='vector1'>
-          {/* <img src={Vector} alt="Vector" className="Vector" style={{ width: '80px', height: '60px' }} /> */}
-        </div>
-      </div>
-
-      <div className="register-card position-relative d-flex align-items-center justify-content-center mb-5" >
-        <div className="hands-left position-absolute"></div>
-        <div className="hands-right position-absolute"></div>
-        <img src={person1} className='person1' alt="" />
-        <div className=" shadow text-center w-100 maincard">
-          <h2 className=" mb-5">Sign up to your account</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3 d-flex">
-              <div className="name w-50 me-2 ">
+      <div className="register-page-body d-flex align-items-center justify-content-center flex-grow-1 px-3 px-sm-4 py-4">
+        <div className="register-card position-relative d-flex align-items-center justify-content-center" >
+          <div className="hands-left position-absolute"></div>
+          <div className="hands-right position-absolute"></div>
+          <img src={person1} className='person1' alt="" />
+          <div className=" shadow text-center w-100 maincard">
+            <h2 className=" mb-5">Sign up to your account</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3 auth-row">
+                <div className="name">
+                  <input
+                    type="text"
+                    className={`form-control ${nameError ? 'is-invalid' : ''} p-3`}
+                    placeholder="Enter your name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                  {nameError && <div className="invalid-feedback">{nameError}</div>}
+                </div>
+                <div className="name">
+                  <input
+                    type="text"
+                    className={`form-control ${instituteNameError ? 'is-invalid' : ''} p-3`}
+                    placeholder="Enter institute name"
+                    name="instituteName"
+                    value={formData.instituteName}
+                    onChange={handleChange}
+                  />
+                  {instituteNameError && <div className="invalid-feedback">{instituteNameError}</div>}
+                </div>
+              </div>
+              <div className="name mb-3 " >
                 <input
-                  type="text"
-                  className={`form-control ${nameError ? 'is-invalid' : ''} p-3`}
-                  placeholder="Enter your name"
-                  name="name"
-                  value={formData.name}
+                  type="email"
+                  className={`form-control ${emailError ? 'is-invalid' : ''} p-3`}
+                  placeholder="Enter your email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleChange}
                 />
-                {nameError && <div className="invalid-feedback">{nameError}</div>}
+                {emailError && <div className="invalid-feedback">{emailError}</div>}
               </div>
-              <div className="name h-75" >
+              <div className="name mb-3">
                 <input
                   type="text"
-                  className={`form-control ${instituteNameError ? 'is-invalid' : ''} p-3`}
-                  placeholder="Enter institute name"
-                  name="instituteName"
-                  value={formData.instituteName}
+                  className={`form-control ${mobileNumberError ? 'is-invalid' : ''} p-3`}
+                  placeholder="Enter your mobile number"
+                  name="mobileNumber"
+                  value={formData.mobileNumber}
                   onChange={handleChange}
                 />
-                {instituteNameError && <div className="invalid-feedback">{instituteNameError}</div>}
+                {mobileNumberError && <div className="invalid-feedback">{mobileNumberError}</div>}
               </div>
-            </div>
-            <div className="name mb-3 " >
-              <input
-                type="email"
-                className={`form-control ${emailError ? 'is-invalid' : ''} p-3`}
-                placeholder="Enter your email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-              {emailError && <div className="invalid-feedback">{emailError}</div>}
-            </div>
-            <div className="name mb-3">
-              <input
-                type="text"
-                className={`form-control ${mobileNumberError ? 'is-invalid' : ''} p-3`}
-                placeholder="Enter your mobile number"
-                name="mobileNumber"
-                value={formData.mobileNumber}
-                onChange={handleChange}
-              />
-              {mobileNumberError && <div className="invalid-feedback">{mobileNumberError}</div>}
-            </div>
-            <div className="name mb-3">
-              <input
-                type="password"
-                className={`form-control ${passwordError ? 'is-invalid' : ''} p-3`}
-                placeholder="Enter password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-              {passwordError && <div className="invalid-feedback">{passwordError}</div>}
-            </div>
-            <div className="name mb-3">
-              <input
-                type="password"
-                className={`form-control ${confirmPasswordError ? 'is-invalid' : ''} p-3`}
-                placeholder="Confirm password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
-              {confirmPasswordError && <div className="invalid-feedback">{confirmPasswordError}</div>}
-            </div>
-            <button type="submit" className="btn button-color w-50 p-3" disabled={loading}>
-              {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : 'Register'}
-            </button>
-          </form>
+              <div className="name mb-3">
+                <input
+                  type="password"
+                  className={`form-control ${passwordError ? 'is-invalid' : ''} p-3`}
+                  placeholder="Enter password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+                {passwordError && <div className="invalid-feedback">{passwordError}</div>}
+              </div>
+              <div className="name mb-3">
+                <input
+                  type="password"
+                  className={`form-control ${confirmPasswordError ? 'is-invalid' : ''} p-3`}
+                  placeholder="Confirm password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+                {confirmPasswordError && <div className="invalid-feedback">{confirmPasswordError}</div>}
+              </div>
+              <button type="submit" className="btn button-color auth-submit p-3" disabled={loading}>
+                {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : 'Register'}
+              </button>
+            </form>
 
-          <GoogleAuthButton
-            setIsAuthenticated={setIsAuthenticated}
-            onError={(message) => {
-              setModal({ show: true, message });
-              setTimeout(() => setModal({ show: false, message: '' }), 2500);
-            }}
-          />
+            <GoogleAuthButton
+              mode="signup"
+              setIsAuthenticated={setIsAuthenticated}
+              onError={(message) => {
+                setModal({ show: true, message });
+                setTimeout(() => setModal({ show: false, message: '' }), 2500);
+              }}
+            />
+          </div>
+          <img src={person2} className='person2' alt="" />
         </div>
-        <img src={person2} className='person2' alt="" />
       </div>
 
       {/* Modal component */}

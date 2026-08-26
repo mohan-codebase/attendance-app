@@ -13,21 +13,28 @@ import Register from './components/Register';
 import Startingpage from './components/Startingpage';
 import Dashboard from './components/Dashboard';
 import Help from './components/Help';
+import Profile from './components/Profile';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+import ThemeToggle from './components/ThemeToggle';
 
 import './App.css';
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Read the token during the first render, not in an effect. Starting at false
+  // meant a deep link like /attendances was evaluated while still "logged out",
+  // so the route redirected to /login, whose own effect then saw the token and
+  // sent you to /dashboard — every deep link, refresh and bookmark landed on
+  // the dashboard instead of the page asked for. An expired token still gets
+  // cleared by the 401 interceptor in api.js.
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => Boolean(localStorage.getItem('authToken'))
+  );
   // Restore the saved choice; Settings writes it as 'preferredTheme'.
   // Without this the theme silently resets to 'system' on every reload.
   const [theme, setTheme] = useState(() => localStorage.getItem('preferredTheme') || 'system');
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      setIsAuthenticated(true);
-    }
-
     // Apply theme
     const applyTheme = (theme) => {
       if (theme === 'dark') {
@@ -72,10 +79,14 @@ const App = () => {
     <Router basename={process.env.PUBLIC_URL}>
       <div className="app">
         {isAuthenticated && <Sidebar setIsAuthenticated={setIsAuthenticated} />}
+        {/* Outside the routes, so it is on every screen — login and register
+            included, where there is no sidebar to reach Settings from. */}
+        <ThemeToggle setTheme={setTheme} />
         <div className={`main-content ${isAuthenticated ? 'with-sidebar' : ''}`}>
           <Routes>
             <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Startingpage />} />
-            <Route path="/settings" element={isAuthenticated ? <Settings setTheme={setTheme} /> : <Navigate to="/login" />} />
+            <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
+            <Route path="/settings" element={isAuthenticated ? <Settings theme={theme} setTheme={setTheme} /> : <Navigate to="/login" />} />
             <Route path="/courses" element={isAuthenticated ? <Courses /> : <Navigate to="/login" />} />
             <Route path="/attendances" element={isAuthenticated ? <Attendances /> : <Navigate to="/login" />} />
             <Route path="/report/:studentId?" element={isAuthenticated ? <Report /> : <Navigate to="/login" />} />
@@ -84,6 +95,9 @@ const App = () => {
             <Route path="/help" element={<Help />} />
             <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
             <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />
+            {/* Public by definition: whoever needs these cannot sign in */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
           </Routes>
         </div>

@@ -1,28 +1,37 @@
-.date {
-
-    width: 300px;
-    text-align: center;
-}
-
-.date-text {
-    margin-top: -45px;
-    margin-right: -50px;
-}
-
-.text {
-    width: 300px;
-    margin-top: -50px;
-}
+/* ===========================
+   Courses
+   =========================== */
 
 .course {
-    font-family: Merriweather;
-    font-size: 25px;
-    font-weight: 700;
-    color: var(--text-color);
-    margin-left: 10px;
+  font-family: Merriweather;
+  font-size: clamp(19px, 4vw, 25px);
+  font-weight: 700;
+  color: var(--text-color);
+  margin-left: 10px;
+  margin-bottom: 0;
 }
 
 .book {
-    width: 20px;
-    height: 30px;
+  width: 20px;
+  height: 30px;
+}
+
+/* Month picker + batch filter: side by side with room, stacked without */
+.course-filters .react-datepicker-wrapper,
+.course-filters .form-control,
+.course-filters .form-select {
+  width: 100%;
+}
+
+.course-filter {
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 260px;
+}
+
+@media (max-width: 575.98px) {
+  .course-filter {
+    max-width: none;
+    flex-basis: 100%;
+  }
 }

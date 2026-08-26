@@ -221,11 +221,45 @@
   overflow: hidden;
 }
 
-.rep-table-title {
+.rep-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin: 0 20px 14px;
+}
+
+.rep-table-title {
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
   color: var(--primary-color);
+}
+
+.rep-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--primary-color);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.rep-export:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+}
+
+.rep-export:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .rep-notice {
@@ -430,5 +464,59 @@
 
   .rep-generate {
     width: 100%;
+  }
+
+  .rep-heading {
+    font-size: 19px;
+    margin-bottom: 16px;
+  }
+
+  .rep-filters {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  /* Title and export button stop fitting on one line */
+  .rep-table-head {
+    flex-wrap: wrap;
+    margin: 0 16px 12px;
+  }
+
+  .rep-notice {
+    margin: 0 16px 12px;
+  }
+
+  .rep-table th:first-child,
+  .rep-table td:first-child {
+    padding-left: 16px;
+  }
+
+  .rep-side {
+    padding: 16px;
+  }
+
+  .rep-side-chart {
+    height: 210px;
+  }
+}
+
+/* Narrow phones: a 262px card is wider than the padded viewport, which made
+   the horizontal card strip feel broken rather than scrollable. */
+@media (max-width: 400px) {
+  .rep-card {
+    flex-basis: min(262px, 82vw);
+    min-width: min(262px, 82vw);
+  }
+
+  .rep-card-donut {
+    height: 150px;
+  }
+
+  .rep-modal {
+    padding: 18px;
+  }
+
+  .rep-modal-backdrop {
+    padding: 12px;
   }
 }

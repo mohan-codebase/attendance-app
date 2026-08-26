@@ -6,6 +6,7 @@ import moment from 'moment';
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import '../css/Calendar.css';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 const localizer = momentLocalizer(moment);
@@ -89,7 +90,7 @@ const StudentDetail = () => {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-3 mt-md-4">
       <h2>Attendance Detail</h2>
       {attendanceRecords.length > 0 ? (
         <div className="mb-3">
@@ -104,17 +105,23 @@ const StudentDetail = () => {
           <h4>No attendance record available</h4>
         </div>
       )}
-      <div className="mb-4" style={{ height: '30px' }}>
+      <div className="mb-4">
         <h4>Attendance Summary (Animated Pie Chart)</h4>
-        <Pie data={pieData} options={pieOptions} />
+        {/* maintainAspectRatio is off, so the chart takes the wrapper's height —
+            the previous 30px box collapsed it onto the calendar below. */}
+        <div className="student-chart">
+          <Pie data={pieData} options={pieOptions} />
+        </div>
       </div>
-      <BigCalendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ height: 500 }}
-      />
+      <div className="cal-shell mb-4">
+        <BigCalendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: '100%' }}
+        />
+      </div>
     </div>
   );
 };

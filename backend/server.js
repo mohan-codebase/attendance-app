@@ -56,6 +56,24 @@ app.use("/api/users", userRoutes);
 // Everything else under /api requires a valid token
 app.use("/api", requireAuth);
 
+// Every record below belongs to the account that created it. `owner` is set
+// from the verified token, never from the request body, and every read, update
+// and delete is filtered by it -- otherwise one institute could see, edit or
+// delete another's students just by knowing an id.
+const ownerField = {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  required: true,
+  index: true,
+};
+
+// A client must not be able to reassign ownership or the id by putting them in
+// an update body.
+const stripReadOnly = ({ owner, _id, __v, ...rest }) => rest;
+
+const notFound = (res) =>
+  res.status(404).json({ message: "Not found, or not yours to change" });
+
 mongoose.connect(process.env.MONGO_URI).then(() => console.log("MongoDB connected"))
   .catch(err => {
     console.error("MongoDB connection failed", err);
@@ -64,9 +82,10 @@ mongoose.connect(process.env.MONGO_URI).then(() => console.log("MongoDB connecte
 
 // Admission Schema and Model
 const admissionSchema = new mongoose.Schema({
+  owner: ownerField,
   name: { type: String, required: true },
-  mobile: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
+  mobile: { type: String, required: true },
+  email: { type: String, required: true },
   qualification: { type: String, required: true },
   parentName: { type: String, required: true },
   parentMobile: { type: String, required: true },
@@ -80,6 +99,12 @@ const admissionSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now },
 });
 
+// Uniqueness is per account, not global: two institutes may both enrol the
+// same person, and a global index would also leak that some other institute
+// already holds that email.
+admissionSchema.index({ owner: 1, email: 1 }, { unique: true });
+admissionSchema.index({ owner: 1, mobile: 1 }, { unique: true });
+
 const Admission = mongoose.model("Admission", admissionSchema);
 
 // Endpoint to check if email or mobile already exists
@@ -88,6 +113,7 @@ app.post("/api/admissions/check", async (req, res) => {
 
   try {
     const existingStudent = await Admission.findOne({
+      owner: req.userId,
       $or: [{ email }, { mobile }],
     });
 
@@ -105,7 +131,7 @@ app.post("/api/admissions/check", async (req, res) => {
 // Endpoint to add a new admission
 app.post("/api/admissions", async (req, res) => {
   try {
-    const newAdmission = new Admission(req.body);
+    const newAdmission = new Admission({ ...stripReadOnly(req.body), owner: req.userId });
     await newAdmission.save();
     res.status(201).json({ message: "Admission submitted successfully!" });
   } catch (error) {
@@ -117,7 +143,7 @@ app.post("/api/admissions", async (req, res) => {
 // Endpoint to get all admissions
 app.get("/api/admissions", async (req, res) => {
   try {
-    const admissions = await Admission.find();
+    const admissions = await Admission.find({ owner: req.userId });
     res.status(200).json(admissions);
   } catch (error) {
     console.error("Error fetching admissions:", error);
@@ -128,7 +154,7 @@ app.get("/api/admissions", async (req, res) => {
 // New endpoint to get grouped admissions data
 app.get("/api/admissions/grouped", async (req, res) => {
   try {
-    const admissions = await Admission.find();
+    const admissions = await Admission.find({ owner: req.userId });
     const groupedAdmissions = admissions.reduce((acc, admission) => {
       const { course } = admission;
       if (!acc[course]) {
@@ -153,7 +179,8 @@ app.get("/api/admissions/grouped", async (req, res) => {
 app.delete("/api/admissions/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    await Admission.findByIdAndDelete(id);
+    const deleted = await Admission.findOneAndDelete({ _id: id, owner: req.userId });
+    if (!deleted) return notFound(res);
     res.status(200).json({ message: "Admission deleted successfully!" });
   } catch (error) {
     res.status(500).json({ error: "Error deleting admission" });
@@ -163,7 +190,12 @@ app.delete("/api/admissions/:id", async (req, res) => {
 app.put("/api/admissions/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedAdmission = await Admission.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedAdmission = await Admission.findOneAndUpdate(
+      { _id: id, owner: req.userId },
+      stripReadOnly(req.body),
+      { new: true }
+    );
+    if (!updatedAdmission) return notFound(res);
     res.status(200).json(updatedAdmission);
   } catch (error) {
     res.status(500).json({ error: "Error updating admission" });
@@ -172,6 +204,7 @@ app.put("/api/admissions/:id", async (req, res) => {
 
 // Student schema and model
 const studentSchema = new mongoose.Schema({
+  owner: ownerField,
   name: String,
   // Add other fields as needed
 });
@@ -180,7 +213,7 @@ const Student = mongoose.model("Student", studentSchema);
 
 app.get("/api/students", async (req, res) => {
   try {
-    const students = await Student.find();
+    const students = await Student.find({ owner: req.userId });
     res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ error: "Error fetching students" });
@@ -189,6 +222,7 @@ app.get("/api/students", async (req, res) => {
 
 // Attendance schema and model
 const attendanceSchema = new mongoose.Schema({
+  owner: ownerField,
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Admission' },
   date: { type: Date, default: Date.now },
   status: String,
@@ -198,7 +232,18 @@ const Attendance = mongoose.model("Attendance", attendanceSchema);
 
 app.post("/api/attendance", async (req, res) => {
   try {
-    const newAttendance = new Attendance(req.body);
+    // The student must be one of this account's, or attendance could be
+    // written against another institute's roster.
+    const student = await Admission.findOne({
+      _id: req.body.studentId,
+      owner: req.userId,
+    });
+    if (!student) return notFound(res);
+
+    const newAttendance = new Attendance({
+      ...stripReadOnly(req.body),
+      owner: req.userId,
+    });
     await newAttendance.save();
     res.status(201).json({ message: "Attendance marked successfully!" });
   } catch (error) {
@@ -208,7 +253,7 @@ app.post("/api/attendance", async (req, res) => {
 
 app.get("/api/attendance", async (req, res) => {
   try {
-    const attendanceRecords = await Attendance.find().populate('studentId');
+    const attendanceRecords = await Attendance.find({ owner: req.userId }).populate('studentId');
     res.status(200).json(attendanceRecords);
   } catch (error) {
     res.status(500).json({ error: "Error fetching attendance records" });
@@ -227,6 +272,7 @@ app.get("/api/festivals", async (req, res) => {
 
 // Class Schema, Model, and Upcoming Classes Endpoint
 const classSchema = new mongoose.Schema({
+  owner: ownerField,
   title: String,
   date: Date,
   // Add any additional fields as needed
@@ -237,7 +283,10 @@ const Class = mongoose.model("Class", classSchema);
 app.get("/api/classes/upcoming", async (req, res) => {
   try {
     const today = new Date();
-    const upcomingClasses = await Class.find({ date: { $gte: today } }).sort({ date: 1 });
+    const upcomingClasses = await Class.find({
+      owner: req.userId,
+      date: { $gte: today },
+    }).sort({ date: 1 });
     res.status(200).json(upcomingClasses);
   } catch (error) {
     res.status(500).json({ error: "Error fetching upcoming classes" });
@@ -246,6 +295,7 @@ app.get("/api/classes/upcoming", async (req, res) => {
 
 // Event Schema, Model, and Endpoints
 const eventSchema = new mongoose.Schema({
+  owner: ownerField,
   title: String,
   start: Date,
   end: Date,
@@ -258,7 +308,7 @@ const Event = mongoose.model("Event", eventSchema);
 
 app.post("/api/events", async (req, res) => {
   try {
-    const newEvent = new Event(req.body);
+    const newEvent = new Event({ ...stripReadOnly(req.body), owner: req.userId });
     await newEvent.save();
     // Return the newly added event
     res.status(201).json({ message: "Event added successfully!", event: newEvent });
@@ -269,7 +319,7 @@ app.post("/api/events", async (req, res) => {
 
 app.get("/api/events", async (req, res) => {
   try {
-    const events = await Event.find();
+    const events = await Event.find({ owner: req.userId });
     res.status(200).json(events);
   } catch (error) {
     res.status(500).json({ error: "Error fetching events" });
@@ -279,7 +329,12 @@ app.get("/api/events", async (req, res) => {
 app.put("/api/events/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedEvent = await Event.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedEvent = await Event.findOneAndUpdate(
+      { _id: id, owner: req.userId },
+      stripReadOnly(req.body),
+      { new: true }
+    );
+    if (!updatedEvent) return notFound(res);
     res.status(200).json(updatedEvent);
   } catch (error) {
     res.status(500).json({ error: "Error updating event" });
@@ -289,7 +344,8 @@ app.put("/api/events/:id", async (req, res) => {
 app.delete("/api/events/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    await Event.findByIdAndDelete(id);
+    const deleted = await Event.findOneAndDelete({ _id: id, owner: req.userId });
+    if (!deleted) return notFound(res);
     res.status(200).json({ message: "Event deleted successfully!" });
   } catch (error) {
     res.status(500).json({ error: "Error deleting event" });

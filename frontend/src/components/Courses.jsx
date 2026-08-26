@@ -156,10 +156,10 @@ const Courses = () => {
   }
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-4 mt-md-5">
       {/* Header Section */}
-      <div className="d-flex justify-content-between mb-4">
-        <div className="d-flex gap-3">
+      <div className="d-flex justify-content-between align-items-center mb-4 gap-2">
+        <div className="d-flex align-items-center gap-3">
           <img src={book} className="book" alt="Courses" style={{ height: '30px', width: '30px'  }} />
           <h3 className="course">Courses</h3>
         </div>
@@ -170,17 +170,18 @@ const Courses = () => {
 
       {/* Filters Section */}
       {selectedCourse && (
-        <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-          <DatePicker
-            selected={selectedMonth}
-            onChange={handleMonthChange}
-            dateFormat="MM/yyyy"
-            showMonthYearPicker
-            className="form-control"
-            placeholderText="Select Month"
-            style={{ width: '200px' , }}
-          />
-          <Form.Group controlId="batchFilter" className="ms-3" style={{ minWidth: '200px' }}>
+        <div className="course-filters d-flex align-items-center mb-4 flex-wrap gap-3">
+          <div className="course-filter">
+            <DatePicker
+              selected={selectedMonth}
+              onChange={handleMonthChange}
+              dateFormat="MM/yyyy"
+              showMonthYearPicker
+              className="form-control"
+              placeholderText="Select Month"
+            />
+          </div>
+          <Form.Group controlId="batchFilter" className="course-filter">
             <Form.Select
               value={selectedBatch}
               onChange={(e) => setSelectedBatch(e.target.value)}
@@ -239,7 +240,7 @@ const Courses = () => {
           {groupedFilteredAdmissions[selectedCourse]?.length > 0 ? (
             <div className="row">
               {groupedFilteredAdmissions[selectedCourse].map((admission) => (
-                <div key={admission._id} className="col-md-4 mb-4">
+                <div key={admission._id} className="col-12 col-sm-6 col-lg-4 mb-4">
                   <div className="card shadow-sm" style={{ 
                     backgroundColor: '#CF9CFF', 
                     minHeight: '500px',
@@ -326,7 +327,7 @@ const Courses = () => {
       ) : (
         <div className="row g-3">
           {Object.keys(groupByCourse(admissions)).map((course) => (
-            <div key={course} className="col-md-3">
+            <div key={course} className="col-6 col-md-4 col-lg-3">
               <div 
                 className="card shadow-sm h-100" 
                 onClick={() => setSelectedCourse(course)} 

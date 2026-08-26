@@ -1,0 +1,90 @@
+/* ===========================
+   Academic Calendar
+   =========================== */
+
+/* react-big-calendar needs a parent with a definite height. Tying it to the
+   viewport keeps the grid usable on a phone and generous on a desktop, where a
+   flat 500px was leaving month cells cramped. */
+.cal-shell {
+  height: clamp(360px, 62vh, 640px);
+}
+
+/* The custom toolbar puts prev / label / next beside the view switcher; below
+   the sm breakpoint they need two rows instead of one squeezed one. */
+.cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cal-toolbar-label {
+  margin: 0;
+  font-size: clamp(15px, 3.4vw, 20px);
+  white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+  .cal-toolbar {
+    justify-content: center;
+  }
+
+  .cal-toolbar > * {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  /* Month/week cells and headers get tight fast on a 360px screen */
+  .rbc-header {
+    font-size: 11px;
+    padding: 4px 2px;
+  }
+
+  .rbc-date-cell {
+    font-size: 11px;
+    padding-right: 4px;
+  }
+
+  .rbc-event {
+    font-size: 11px;
+    padding: 1px 4px;
+  }
+
+  .rbc-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* The agenda/time gutter otherwise eats a third of a narrow screen */
+  .rbc-time-view .rbc-time-gutter {
+    font-size: 10px;
+  }
+}
+
+/* Event summary cards */
+.cal-event-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cal-event-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cal-title {
+  font-size: clamp(18px, 3.6vw, 24px);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Student detail pie */
+.student-chart {
+  height: clamp(200px, 34vh, 300px);
+  max-width: 420px;
+}

@@ -9,8 +9,20 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Modal as BsModal, Button, Badge } from 'react-bootstrap';
 import Model from './Model';
+import '../css/Calendar.css';
 
 const localizer = momentLocalizer(moment);
+
+// react-big-calendar needs `id` and real Date objects, but the API speaks
+// `_id` and ISO strings. Every path that puts an event into state goes through
+// here so a created or edited event can't land in a different shape than a
+// fetched one.
+const toCalendarEvent = (event) => ({
+  ...event,
+  id: event._id,
+  start: new Date(event.start),
+  end: new Date(event.end),
+});
 
 const Calendar = () => {
   // State declarations
@@ -38,12 +50,7 @@ const Calendar = () => {
       try {
         // Fetch events
         const eventsResponse = await api.get('/api/events');
-        const formattedEvents = eventsResponse.data.map(event => ({
-          ...event,
-          start: new Date(event.start),
-          end: new Date(event.end),
-          id: event._id
-        }));
+        const formattedEvents = eventsResponse.data.map(toCalendarEvent);
         setEvents(formattedEvents);
 
         // Fetch batches and courses
@@ -78,11 +85,8 @@ const Calendar = () => {
 
     try {
       const response = await api.post('/api/events', newEvent);
-      const createdEvent = {
-        ...response.data,
-        start: new Date(response.data.start),
-        end: new Date(response.data.end)
-      };
+      // The create endpoint wraps the document as { message, event }.
+      const createdEvent = toCalendarEvent(response.data.event);
       // Replace temporary event with the actual event data
       setEvents(prev => prev.map(event => event.id === tempEvent.id ? createdEvent : event));
       resetForm();
@@ -98,11 +102,7 @@ const Calendar = () => {
     setShowForm(false);
     try {
       const response = await api.put(`/api/events/${editEvent.id}`, newEvent);
-      const updatedEvent = {
-        ...response.data,
-        start: new Date(response.data.start),
-        end: new Date(response.data.end)
-      };
+      const updatedEvent = toCalendarEvent(response.data);
       setEvents(events.map(event => event.id === updatedEvent.id ? updatedEvent : event));
       resetForm();
       showSuccess('Event updated successfully!');
@@ -169,12 +169,12 @@ const Calendar = () => {
   });
 
   const CustomToolbar = ({ label, onNavigate, onView, view }) => (
-    <div className="d-flex justify-content-between align-items-center mb-3">
+    <div className="cal-toolbar mb-3">
       <div className="d-flex align-items-center gap-2">
         <Button variant="outline-secondary button-color" onClick={() => onNavigate('PREV')}>
           <i className="bi bi-chevron-left"></i>
         </Button>
-        <h5 className="mb-0">{label}</h5>
+        <h5 className="cal-toolbar-label">{label}</h5>
         <Button variant="outline-secondary button-color" onClick={() => onNavigate('NEXT')}>
           <i className="bi bi-chevron-right"></i>
         </Button>
@@ -191,10 +191,10 @@ const Calendar = () => {
   );
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-3 mt-md-4">
       <div className="card shadow">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h2 className="h4 mb-0">Academic Calendar</h2>
+        <div className="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h2 className="cal-title mb-0">Academic Calendar</h2>
           <Button className='button-color' variant="" onClick={() => setShowForm(true)}>
             <i className="bi bi-plus-lg me-2"></i>Add Event
           </Button>
@@ -232,13 +232,13 @@ const Calendar = () => {
           </div>
 
           {/* Calendar */}
-          <div className="mb-4">
+          <div className="cal-shell mb-4">
             <BigCalendar
               localizer={localizer}
               events={filteredEvents}
               startAccessor="start"
               endAccessor="end"
-              style={{ height: 500 }}
+              style={{ height: '100%' }}
               components={{ toolbar: CustomToolbar }}
               eventPropGetter={eventStyleGetter}
               views={['month', 'week']}
@@ -249,17 +249,17 @@ const Calendar = () => {
           <h4 className="mb-3">Upcoming Events</h4>
           <div className="row g-3">
             {filteredEvents.map(event => (
-              <div className="col-md-6" key={event.id}>
+              <div className="col-12 col-lg-6" key={event.id}>
                 <div className="card h-100 shadow-sm">
                   <div className="card-body">
-                    <div className="d-flex justify-content-between align-items-start">
+                    <div className="cal-event-head">
                       <div>
                         <h5 className="card-title">{event.title}</h5>
                         <div className="text-muted small mb-2">
                           <i className="bi bi-clock me-1"></i>
                           {moment(event.start).format('MMM Do, h:mm a')} - {moment(event.end).format('h:mm a')}
                         </div>
-                        <div className="d-flex gap-2">
+                        <div className="cal-event-badges">
                           <Badge bg="primary">{event.batch}</Badge>
                           <Badge bg="success">{event.course}</Badge>
                           <Badge bg="secondary">{event.slot}</Badge>
