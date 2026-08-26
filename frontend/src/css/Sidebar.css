@@ -2,35 +2,43 @@
    Sidebar
    =========================== */
 
+/* A floating card rather than a full-height panel: inset on all four sides,
+   rounded, and lifted off the page with a shadow. Top and bottom are set
+   instead of a height so the card always spans the visible viewport — no 100vh
+   guesswork around the mobile URL bar — and both take the iPhone safe-area
+   insets into account. */
 .sidebar {
   position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  /* Mobile browsers count the collapsing URL bar in 100vh, which pushed the
-     account block and logout below the fold. dvh tracks the visible area. */
-  height: 100dvh;
+  top: max(var(--sidebar-gap), env(safe-area-inset-top));
+  bottom: max(var(--sidebar-gap), env(safe-area-inset-bottom));
+  left: var(--sidebar-gap);
   display: flex;
   flex-direction: column;
   background-color: var(--sidebar-background-color);
   color: var(--sidebar-text-color);
-  border-right: 1px solid var(--border-subtle-color);
+  border: 1px solid var(--border-subtle-color);
+  border-radius: 18px;
+  box-shadow: 0 6px 24px rgba(20, 20, 40, 0.10);
   z-index: 1000;
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* Clipped, not scrollable: rounded corners would otherwise be cut through by
+     the scrolling content. The nav inside does the scrolling. */
+  overflow: hidden;
   /* transform is listed for the mobile drawer, which slides rather than resizes */
   transition: width 0.3s ease, transform 0.3s ease;
-  /* Keeps the brand and logout clear of the iPhone notch / home indicator */
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* The page background is dark too, so the card needs a deeper shadow to read
+   as raised rather than just a slightly different rectangle. */
+[data-theme='dark'] .sidebar {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.38);
 }
 
 .sidebar-open {
-  width: 254px;
+  width: var(--sidebar-width);
 }
 
 .sidebar-collapsed {
-  width: 76px;
+  width: var(--sidebar-rail-width);
 }
 
 /* --- Brand --- */
@@ -388,11 +396,13 @@
 
 @media (max-width: 768px) {
   .sidebar {
-    transform: translateX(-100%);
+    /* Off-screen by its own width plus the left inset, or a sliver of the card
+       and its shadow would still show along the edge. */
+    transform: translateX(calc(-100% - var(--sidebar-gap) - 26px));
     /* Never wider than the screen: 264px on a 360px phone still leaves the
        overlay tappable, but a 280px-wide device would be fully covered. */
     width: min(264px, 82vw) !important;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+    box-shadow: 6px 0 28px rgba(0, 0, 0, 0.28);
   }
 
   .sidebar-mobile-open {

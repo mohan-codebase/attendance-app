@@ -57,6 +57,13 @@
 
   /* Icons: sidebar art is dark line-work, so it needs no filter on light */
   --icon-filter: none;
+
+  /* Sidebar geometry. It floats as a card, so the page has to leave room for
+     its width plus the gap on both sides. Kept here rather than in Sidebar.css
+     because the page gutter below is derived from the same numbers. */
+  --sidebar-width: 254px;
+  --sidebar-rail-width: 76px;
+  --sidebar-gap: 14px;
 }
 
 [data-theme='dark'] {
@@ -437,14 +444,14 @@ progress {
 }
 
 .main-content.with-sidebar {
-  margin-left: 254px;
+  margin-left: calc(var(--sidebar-width) + var(--sidebar-gap) * 2);
 }
 
 /* The sidebar publishes its width on <body> (see Sidebar.jsx) so the page can
    reclaim the space when it collapses to the 76px icon rail. Without this the
    content kept a 254px gutter against a 76px rail. */
 body[data-sidebar='collapsed'] .main-content.with-sidebar {
-  margin-left: 76px;
+  margin-left: calc(var(--sidebar-rail-width) + var(--sidebar-gap) * 2);
 }
 
 /* Tablets: the rail costs less than the full drawer on a 1024px screen */
