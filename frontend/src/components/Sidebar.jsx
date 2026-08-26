@@ -14,6 +14,7 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  X,
 } from 'lucide-react';
 
 import logo from '../img/logo.png';
@@ -41,6 +42,9 @@ const navSections = [
   },
 ];
 
+// Kept in sync with the `max-width: 768px` breakpoint in Sidebar.css
+const MOBILE_QUERY = '(max-width: 768px)';
+
 const Sidebar = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,6 +52,9 @@ const Sidebar = ({ setIsAuthenticated }) => {
   const [user, setUser] = useState(null);
   const [isOpen, setIsOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches
+  );
   const [expanded, setExpanded] = useState(() => ['/dashboard']);
 
   const handleLogout = useCallback(() => {
@@ -100,6 +107,36 @@ const Sidebar = ({ setIsAuthenticated }) => {
     setExpanded((prev) => (prev.includes(location.pathname) ? prev : [...prev, location.pathname]));
   }, [location.pathname]);
 
+  // Follow the viewport so a desktop collapse doesn't leave the mobile drawer
+  // stuck as a 264px-wide icon rail after a rotate or resize.
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const handleChange = (e) => {
+      setIsMobile(e.matches);
+      if (!e.matches) setIsMobileOpen(false);
+    };
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
+  }, []);
+
+  // Publish the rail width so .main-content can reclaim the space (App.css).
+  useEffect(() => {
+    document.body.dataset.sidebar = isMobile ? 'mobile' : isOpen ? 'open' : 'collapsed';
+    return () => {
+      delete document.body.dataset.sidebar;
+    };
+  }, [isMobile, isOpen]);
+
+  // An open drawer covers the page, so the page behind it must not scroll.
+  useEffect(() => {
+    document.body.classList.toggle('sidebar-drawer-open', isMobileOpen);
+    return () => document.body.classList.remove('sidebar-drawer-open');
+  }, [isMobileOpen]);
+
+  // A phone drawer is always the full-width version, whatever the desktop
+  // collapse state happens to be.
+  const showLabels = isMobile || isOpen;
+
   const isActive = (path) =>
     path === '/report' ? location.pathname.startsWith('/report') : location.pathname === path;
 
@@ -116,9 +153,10 @@ const Sidebar = ({ setIsAuthenticated }) => {
   return (
     <>
       <button
-        className="sidebar-mobile-toggle"
+        className={`sidebar-mobile-toggle ${isMobileOpen ? 'is-hidden' : ''}`}
         onClick={() => setIsMobileOpen((prev) => !prev)}
-        aria-label="Toggle navigation"
+        aria-label="Open navigation"
+        aria-expanded={isMobileOpen}
       >
         <span className="hamburger-icon">
           <span />
@@ -130,14 +168,14 @@ const Sidebar = ({ setIsAuthenticated }) => {
       {isMobileOpen && <div className="sidebar-overlay" onClick={() => setIsMobileOpen(false)} />}
 
       <aside
-        className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'} ${
+        className={`sidebar ${showLabels ? 'sidebar-open' : 'sidebar-collapsed'} ${
           isMobileOpen ? 'sidebar-mobile-open' : ''
         }`}
       >
         {/* Brand */}
         <div className="sidebar-brandbar">
           <img src={logo} alt="" className="sidebar-brand-avatar" />
-          {isOpen && (
+          {showLabels && (
             <div className="sidebar-brand-text">
               <span className="sidebar-brand-eyebrow">Attendance Management</span>
               <span className="sidebar-brand-name">Present sir</span>
@@ -145,11 +183,11 @@ const Sidebar = ({ setIsAuthenticated }) => {
           )}
           <button
             className="sidebar-collapse-btn"
-            onClick={() => setIsOpen((prev) => !prev)}
-            aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            onClick={() => (isMobile ? setIsMobileOpen(false) : setIsOpen((prev) => !prev))}
+            aria-label={isMobile ? 'Close navigation' : isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            title={isMobile ? 'Close navigation' : isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            {isOpen ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
+            {isMobile ? <X size={18} /> : isOpen ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
           </button>
         </div>
 
@@ -157,7 +195,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
         <nav className="sidebar-nav">
           {navSections.map((section) => (
             <div className="sidebar-section" key={section.label}>
-              {isOpen && <p className="sidebar-section-label">{section.label}</p>}
+              {showLabels && <p className="sidebar-section-label">{section.label}</p>}
 
               <ul className="sidebar-nav-list">
                 {section.items.map((item) => {
@@ -171,13 +209,13 @@ const Sidebar = ({ setIsAuthenticated }) => {
                         <Link
                           to={item.path}
                           className="sidebar-nav-link"
-                          title={!isOpen ? item.label : undefined}
+                          title={!showLabels ? item.label : undefined}
                         >
                           <Icon size={19} strokeWidth={1.75} className="sidebar-nav-icon" />
-                          {isOpen && <span className="sidebar-nav-label">{item.label}</span>}
+                          {showLabels && <span className="sidebar-nav-label">{item.label}</span>}
                         </Link>
 
-                        {isOpen && item.children && (
+                        {showLabels && item.children && (
                           <button
                             className="sidebar-chevron"
                             onClick={() => toggleGroup(item.path)}
@@ -189,7 +227,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
                         )}
                       </div>
 
-                      {isOpen && item.children && open && (
+                      {showLabels && item.children && open && (
                         <ul className="sidebar-subnav">
                           {item.children.map((child) => (
                             <li key={child.label}>
@@ -222,7 +260,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
               ) : (
                 <span className="sidebar-account-avatar sidebar-account-initials">{initials}</span>
               )}
-              {isOpen && (
+              {showLabels && (
                 <div className="sidebar-account-text">
                   <span className="sidebar-account-email">{user.email}</span>
                   <span className="sidebar-account-org">{user.instituteName || user.name}</span>
@@ -233,7 +271,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
 
           <button onClick={handleLogout} className="sidebar-logout" title="Logout">
             <LogOut size={17} strokeWidth={1.75} />
-            {isOpen && <span>Logout Account</span>}
+            {showLabels && <span>Logout Account</span>}
           </button>
         </div>
       </aside>

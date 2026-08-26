@@ -11,7 +11,7 @@ import {
   LinearScale,
   BarElement,
 } from 'chart.js';
-import { ChevronLeft, ChevronRight, Pencil, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pencil, X, Download } from 'lucide-react';
 import { ABSENT, resolveDay, isAttended } from '../constants/attendance';
 import { centerLabel } from '../utils/chartPlugins';
 import '../css/Report.css';
@@ -244,6 +244,37 @@ const Report = () => {
 
   const reportTitle = applied.course === ALL ? 'All courses' : applied.course;
 
+  // CSV export of exactly what the table is showing.
+  const exportCSV = () => {
+    const headers = ['#', 'Student name', 'Batch', 'Mode', 'Total Present Day', 'Total Absence Day'];
+    const escape = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const lines = [
+      headers.join(','),
+      ...rows.map((student, index) =>
+        [
+          index + 1,
+          escape(student.name),
+          escape(student.batch),
+          escape(student.modeOfLearning),
+          student.present,
+          student.absent,
+        ].join(',')
+      ),
+    ];
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `attendance_report_${reportTitle.replace(/\W+/g, '_')}_${moment().format(
+      'YYYY-MM-DD'
+    )}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const openEdit = (student) => {
     setEditing(student);
     setEditForm({ batch: student.batch || '', modeOfLearning: student.modeOfLearning || '' });
@@ -363,7 +394,13 @@ const Report = () => {
 
           {/* Table */}
           <div className="rep-table-card">
-            <h2 className="rep-table-title">{reportTitle} Report</h2>
+            <div className="rep-table-head">
+              <h2 className="rep-table-title">{reportTitle} Report</h2>
+              <button className="rep-export" onClick={exportCSV} disabled={!rows.length}>
+                <Download size={15} strokeWidth={1.75} />
+                Export CSV
+              </button>
+            </div>
             {notice && <p className="rep-notice">{notice}</p>}
 
             <div className="rep-table-scroll">

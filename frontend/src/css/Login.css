@@ -1,9 +1,13 @@
-.vector2{
+/* Sign-in specific bits — the shared auth card lives in Register.css */
+
+.vector2 {
   position: absolute;
   bottom: 200px;
   left: 70px;
-  z-index:1;
- }
- .forget{
+  z-index: 1;
+}
+
+.forget {
   text-decoration: none;
- }
+  white-space: nowrap;
+}

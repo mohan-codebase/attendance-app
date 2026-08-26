@@ -60,6 +60,8 @@
   /* The form is taller than a short viewport, so scroll inside the sheet
      rather than letting the submit button fall off the screen. */
   max-height: 92vh;
+  /* dvh keeps the sheet clear of a mobile browser's collapsing toolbars */
+  max-height: 92dvh;
 }
 
 /* --- Cover banner --- */
@@ -246,5 +248,24 @@
 
   .adm-cover {
     height: 104px;
+  }
+
+  .adm-page {
+    padding: 28px 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .adm-body {
+    padding: 16px 14px 20px;
+  }
+
+  .adm-cover {
+    height: 84px;
+  }
+
+  .adm-submit {
+    max-width: none;
+    margin-top: 20px;
   }
 }

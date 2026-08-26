@@ -1,0 +1,45 @@
+/* ===========================
+   Landing page
+   =========================== */
+
+.start-page {
+  /* vh-100 clipped the hero on short/landscape phones; let it grow instead */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.start-hero h1 {
+  font-size: clamp(26px, 5.4vw, 44px);
+  line-height: 1.25;
+}
+
+.start-cta {
+  width: 50%;
+  min-width: 180px;
+}
+
+@media (max-width: 767.98px) {
+  .start-hero {
+    text-align: center;
+    padding-top: 12px;
+  }
+
+  .start-cta {
+    width: 100%;
+  }
+
+  /* The illustration leads on desktop but should follow the pitch on a phone */
+  .start-art {
+    order: 2;
+    margin-top: 24px;
+  }
+
+  .start-hero-copy {
+    order: 1;
+  }
+}
+
+.start-art img {
+  max-width: min(100%, 440px);
+  height: auto;
+}

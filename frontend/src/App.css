@@ -436,10 +436,39 @@ progress {
   margin-left: 254px;
 }
 
+/* The sidebar publishes its width on <body> (see Sidebar.jsx) so the page can
+   reclaim the space when it collapses to the 76px icon rail. Without this the
+   content kept a 254px gutter against a 76px rail. */
+body[data-sidebar='collapsed'] .main-content.with-sidebar {
+  margin-left: 76px;
+}
+
+/* Tablets: the rail costs less than the full drawer on a 1024px screen */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .main-content {
+    padding: 18px 16px;
+  }
+}
+
 @media (max-width: 768px) {
-  .main-content.with-sidebar {
+  .main-content.with-sidebar,
+  body[data-sidebar='collapsed'] .main-content.with-sidebar {
     margin-left: 0;
-    padding-top: 60px;
+    /* Clears the fixed hamburger, plus the iOS status-bar inset */
+    padding-top: calc(60px + env(safe-area-inset-top));
+  }
+
+  .main-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 28px;
   }
 }
 
@@ -637,6 +666,16 @@ progress {
 
 /* ===== react-datepicker ===== */
 
+/* The wrapper and input container are inline-block by default, so a field set
+   to width:100% only ever grew to its shrink-to-fit text width — leaving the
+   attendance date box short of its row and its calendar icon stranded. */
+.react-datepicker-wrapper,
+.react-datepicker__input-container,
+.att-date-wrapper {
+  display: block;
+  width: 100%;
+}
+
 .react-datepicker {
   background-color: var(--surface-color);
   color: var(--text-color);
@@ -809,4 +848,99 @@ progress {
 
 .modal.show.slide-down {
   animation: slideDown 0.5s ease-out;
+}
+
+/* ===== Responsive foundations =====
+   Cross-cutting rules that keep every page inside the viewport on phones and
+   tablets. Page-level breakpoints live in each page's own stylesheet. */
+
+/* Rotating an iPhone inflates text unless this is pinned */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* A single overflowing child used to make the whole page pan sideways, which
+   also breaks the fixed sidebar's alignment. Media is the usual culprit. */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+/* Chart.js canvases are sized by JS; height comes from the wrapper */
+canvas {
+  height: auto;
+}
+
+/* Long unbroken values (emails, URLs) in tables and cards */
+table,
+.card,
+.list-group-item {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  /* Any Bootstrap table scrolls inside its own box rather than the page */
+  .table-responsive,
+  .table {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* iOS zooms the page in whenever a focused field is under 16px. The
+     page-level fields are listed with their parents because a bare element
+     selector loses to the class rule that sets their 13-14px size. */
+  .form-control,
+  .form-select,
+  input,
+  select,
+  textarea,
+  .att-filters .att-filter,
+  .att-date .att-date-input,
+  .att-search input,
+  .dash-search input,
+  .rep-filter .rep-filter-select,
+  .rep-modal-field select,
+  .adm-body .adm-input,
+  .adm-search input {
+    font-size: 16px;
+  }
+
+  /* Bootstrap's default dialog leaves 1rem of margin; phones need the width */
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+
+  /* Native modals (Model.jsx) are absolutely placed — keep them off the edges */
+  .modal .modal-body {
+    padding: 0.875rem 1rem;
+  }
+}
+
+/* Comfortable touch targets on anything that is tapped rather than clicked */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .form-select,
+  .form-control {
+    min-height: 44px;
+  }
+
+  .btn-sm,
+  .form-control-sm,
+  .form-select-sm {
+    min-height: 36px;
+  }
+}
+
+/* Respect the OS "reduce motion" setting across the app's transitions */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

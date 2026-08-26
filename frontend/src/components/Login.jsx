@@ -124,15 +124,16 @@ const Login = ({ setIsAuthenticated }) => {
     };
 
     return (
-        <div className="login-container d-flex flex-column  vh-100">
-            <nav className="navbar navbar-light w-100 px-4">
-            <p>PresentSir</p>                  <div>
-                    <Link to='/Login'><button className="btn btn-light  me-3" style={{ padding: '10px 34px 14px 34px' }}>Login</button></Link>
-                    <Link to='/Register'><button className="btn button-color" style={{ padding: '10px 34px 14px 34px' }}>Register</button></Link>
+        <div className="login-container d-flex flex-column">
+            <nav className="navbar navbar-light auth-nav w-100 px-3 px-sm-4 flex-nowrap">
+                <p className="mb-0">PresentSir</p>
+                <div className="auth-nav-actions">
+                    <Link to='/Login'><button className="btn btn-light auth-nav-btn">Login</button></Link>
+                    <Link to='/Register'><button className="btn button-color auth-nav-btn">Register</button></Link>
                 </div>
             </nav>
 
-            <div className='d-flex align-items-center justify-content-center flex-grow-1 '>
+            <div className='d-flex align-items-center justify-content-center flex-grow-1 px-3 px-sm-4 py-4'>
                 <div className='vector1'>
                 </div>
                 <div className='vector2'>
@@ -183,7 +184,7 @@ const Login = ({ setIsAuthenticated }) => {
                                     )}
                                 </div>
 
-                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                <div className="d-flex justify-content-between align-items-center auth-options mb-3">
                                     <div className='remember mt-4 d-flex gap-1'>
                                         <input
                                             type="checkbox"
@@ -197,7 +198,7 @@ const Login = ({ setIsAuthenticated }) => {
                                     <a href="#" className="forget text-primary mt-4">Forgot password?</a>
                                 </div>
 
-                                <button type="submit" className="sign-in btn button-color w-50 p-3 mt-4" disabled={loading}>
+                                <button type="submit" className="sign-in btn button-color auth-submit p-3 mt-4" disabled={loading}>
                                     {loading ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : 'Sign In'}
                                 </button>
                             </form>

@@ -471,3 +471,82 @@
     width: 170px;
   }
 }
+
+/* Phones: the header can no longer hold a title and a search field on one
+   line, so the search takes a row of its own at full width. */
+@media (max-width: 560px) {
+  .dash-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .dash-header-actions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .dash-search {
+    flex: 1;
+    width: auto;
+    max-width: none;
+  }
+
+  .dash-panel {
+    padding: 18px 16px 20px;
+  }
+
+  .dash-hero {
+    border-radius: 16px;
+  }
+
+  .dash-hero-copy h2 {
+    font-size: 20px;
+  }
+
+  .dash-hero-copy p {
+    margin-bottom: 16px;
+  }
+
+  .dash-top-header,
+  .dash-table .dash-col-no {
+    padding-left: 16px;
+  }
+}
+
+/* Narrow phones: the 158px donut and its legend no longer fit side by side */
+@media (max-width: 430px) {
+  .dash-donut-row {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .dash-donut {
+    width: 148px;
+    height: 148px;
+    align-self: center;
+  }
+
+  .dash-legend {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .dash-course-card {
+    flex: 0 0 180px;
+    min-width: 180px;
+    padding: 16px;
+  }
+
+  .dash-bars {
+    height: 170px;
+  }
+
+  .dash-result-grid,
+  .dash-detail-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

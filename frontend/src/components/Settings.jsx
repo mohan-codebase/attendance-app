@@ -69,7 +69,7 @@ const Settings = ({ setTheme }) => {
   };
 
   return (
-    <div className="container p-4">
+    <div className="container p-3 p-md-4">
       <div className="d-flex flex-row justify-content-top align-items-center gap-5">
         <img src={settings} className='settings' style={{ width: '40px' }} alt="Settings" />
       </div>
@@ -79,7 +79,7 @@ const Settings = ({ setTheme }) => {
       <div className="mb-4">
         <h4 className="inter">Interface Theme</h4>
         <p className="inter1 mt-3">Select or customize your UI theme</p>
-        <div className="d-flex gap-5 theme-selection flex-wrap">
+        <div className="theme-selection">
           {[
             { mode: "system", img: system },
             { mode: "light", img: light },

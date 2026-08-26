@@ -1,101 +1,100 @@
-import React, { useContext } from 'react';
-import { Card, Accordion } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faUser, 
-  faUserClock, 
-  faFileAlt, 
-  faCog, 
-  faHeadphones 
-} from '@fortawesome/free-solid-svg-icons';
+import React, { useState } from 'react';
+import {
+  UserRound,
+  UserRoundCheck,
+  UsersRound,
+  FileText,
+  Settings as SettingsIcon,
+  Headphones,
+  ChevronDown,
+} from 'lucide-react';
+import '../css/Help.css';
 
+const TOPICS = [
+  {
+    icon: UserRound,
+    title: 'Get started',
+    body: 'Set up your institute, add your first students, and take attendance in a few minutes.',
+  },
+  {
+    icon: UserRoundCheck,
+    title: 'Managing Attendance',
+    body: 'Effortlessly track, update, and manage attendance with a user-friendly web app.',
+  },
+  {
+    icon: UsersRound,
+    title: 'User Management',
+    body: 'Easily add, assign roles, and manage users for seamless access control.',
+  },
+  {
+    icon: FileText,
+    title: 'Reporting',
+    body: 'Generate insightful attendance reports with customizable date ranges and export options.',
+  },
+  {
+    icon: SettingsIcon,
+    title: 'Settings',
+    body: 'Customize notifications, working hours, and preferences for a tailored experience.',
+  },
+  {
+    icon: Headphones,
+    title: 'Support',
+    body: 'Access FAQs, live chat, and email support for quick assistance.',
+  },
+];
+
+const FAQS = [
+  {
+    q: 'Can I export attendance data?',
+    a: 'Yes. Open Report → Student Performance, choose your course, batch, month and mode, press Generate Report, then use Export CSV to download exactly what the table is showing.',
+  },
+  {
+    q: 'What roles can be assigned to users?',
+    a: 'Every account currently signs in with the same level of access to its own institute. Per-user roles such as admin, staff and viewer are not available yet.',
+  },
+  {
+    q: 'How do I edit an attendance record?',
+    a: 'Go to Attendances → Take attendance and pick the date you want to change. Existing marks load in, so you can set a student to Present, Late or Absent and press Submit again.',
+  },
+];
 
 const Help = () => {
- 
+  const [openFaq, setOpenFaq] = useState(null);
+
   return (
-    <div className="container " style={{ minHeight: '100vh' }}>
-      <h2 className="mb-4">Need help?</h2>
-      <div className="row row-cols-1 row-cols-md-3 g-4">
-        <Card className="shadow-sm border-0 rounded-3">
-          <Card.Body className="text-center p-4">
-            <FontAwesomeIcon icon={faUser} size="2x" className="mb-3 text-muted" />
-            <Card.Title>Get started</Card.Title> {/* Corrected closing tag */}
-            <Card.Text className="text-muted">
-              Generate insightful attendance reports with customizable date ranges and export options.
-            </Card.Text>
-          </Card.Body>
-        </Card>
-        <Card className="shadow-sm border-0 rounded-3">
-          <Card.Body className="text-center p-4">
-            <FontAwesomeIcon icon={faUserClock} size="2x" className="mb-3 text-muted" />
-            <Card.Title>Managing Attendance</Card.Title> {/* Corrected closing tag */}
-            <Card.Text className="text-muted">
-              Effortlessly track, update, and manage attendance with a user-friendly web app.
-            </Card.Text>
-          </Card.Body>
-        </Card>
-        <Card className="shadow-sm border-0 rounded-3">
-          <Card.Body className="text-center p-4">
-            <FontAwesomeIcon icon={faUser} size="2x" className="mb-3 text-muted" />
-            <Card.Title>User Management</Card.Title> {/* Corrected closing tag */}
-            <Card.Text className="text-muted">
-              Easily add, assign roles, and manage users for seamless access control.
-            </Card.Text>
-          </Card.Body>
-        </Card>
-        <Card className="shadow-sm border-0 rounded-3">
-          <Card.Body className="text-center p-4">
-            <FontAwesomeIcon icon={faFileAlt} size="2x" className="mb-3 text-muted" />
-            <Card.Title>Reporting</Card.Title> {/* Corrected closing tag */}
-            <Card.Text className="text-muted">
-              Generate insightful attendance reports with customizable date ranges and export options.
-            </Card.Text>
-          </Card.Body>
-        </Card>
-        <Card className="shadow-sm border-0 rounded-3">
-          <Card.Body className="text-center p-4">
-            <FontAwesomeIcon icon={faCog} size="2x" className="mb-3 text-muted" />
-            <Card.Title>Settings</Card.Title> {/* Corrected closing tag */}
-            <Card.Text className="text-muted">
-              Customize notifications, working hours, and preferences for a tailored experience.
-            </Card.Text>
-          </Card.Body>
-        </Card>
-        <Card className="shadow-sm border-0 rounded-3">
-          <Card.Body className="text-center p-4">
-            <FontAwesomeIcon icon={faHeadphones} size="2x" className="mb-3 text-muted" />
-            <Card.Title>Support</Card.Title> {/* Corrected closing tag */}
-            <Card.Text className="text-muted">
-              Access FAQs, live chat, and email support for quick assistance.
-            </Card.Text>
-          </Card.Body>
-        </Card>
+    <div className="help">
+      <h1 className="help-heading">Need help?</h1>
+
+      <div className="help-grid">
+        {TOPICS.map(({ icon: Icon, title, body }) => (
+          <article className="help-card" key={title}>
+            <Icon size={34} strokeWidth={1.5} className="help-card-icon" />
+            <h2 className="help-card-title">{title}</h2>
+            <p className="help-card-body">{body}</p>
+          </article>
+        ))}
       </div>
 
-      {/* FAQs Section */}
-      <div className="mt-5">
-        <h3>FAQs</h3>
-        <Accordion className="mt-3">
-          <Accordion.Item eventKey="0" className="shadow-sm border-0 rounded-3">
-            <Accordion.Header>Can I export attendance data?</Accordion.Header>
-            <Accordion.Body>
-              Yes, you can export attendance data in various formats like CSV or PDF with customizable date ranges.
-            </Accordion.Body>
-          </Accordion.Item>
-          <Accordion.Item eventKey="1" className="shadow-sm border-0 rounded-3">
-            <Accordion.Header>What roles can be assigned to users?</Accordion.Header>
-            <Accordion.Body>
-              Users can be assigned roles such as Admin, Manager, or Viewer, depending on their responsibilities.
-            </Accordion.Body>
-          </Accordion.Item>
-          <Accordion.Item eventKey="2" className="shadow-sm border-0 rounded-3">
-            <Accordion.Header>How do I edit an attendance record?</Accordion.Header>
-            <Accordion.Body>
-              Navigate to the Attendances section, select the record, and click the edit button to update details.
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      </div>
+      <h2 className="help-heading help-heading--faq">FAQs</h2>
+
+      <ul className="help-faqs">
+        {FAQS.map(({ q, a }, index) => {
+          const open = openFaq === index;
+          return (
+            <li className={`help-faq ${open ? 'is-open' : ''}`} key={q}>
+              <button
+                className="help-faq-q"
+                onClick={() => setOpenFaq(open ? null : index)}
+                aria-expanded={open}
+              >
+                <span>{q}</span>
+                <ChevronDown size={20} strokeWidth={1.75} className="help-faq-chevron" />
+              </button>
+              {open && <p className="help-faq-a">{a}</p>}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 };
