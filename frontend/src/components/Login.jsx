@@ -24,14 +24,14 @@ const Login = ({ setIsAuthenticated }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Earlier builds saved the password here in plaintext. Delete it on
+        // sight so devices that signed in before this change stop carrying it
+        // around; the browser's own password manager fills the field instead.
+        localStorage.removeItem('password');
+
         const savedEmail = localStorage.getItem('email');
-        const savedPassword = localStorage.getItem('password');
-        if (savedEmail && savedPassword) {
-            setFormData({
-                email: savedEmail,
-                password: savedPassword,
-                rememberMe: true,
-            });
+        if (savedEmail) {
+            setFormData((prev) => ({ ...prev, email: savedEmail, rememberMe: true }));
         }
 
         const token = localStorage.getItem('authToken');
@@ -42,16 +42,20 @@ const Login = ({ setIsAuthenticated }) => {
     }, [setIsAuthenticated, navigate]);
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        const { name, type, value, checked } = e.target;
+
+        // A checkbox's `value` is the string "on" whether it is ticked or not,
+        // so reading it here left "Remember me" stuck on once it was ticked.
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
 
         // Clear errors when user starts typing
-        if (e.target.name === 'email') {
+        if (name === 'email') {
             setEmailError('');
         }
-        if (e.target.name === 'password') {
+        if (name === 'password') {
             setPasswordError('');
         }
     };
@@ -97,12 +101,12 @@ const Login = ({ setIsAuthenticated }) => {
             localStorage.setItem('userInfo', JSON.stringify(response.data.user));
             setIsAuthenticated(true);
 
+            // The address only: a stored password is readable by any script on
+            // the page, and the session already survives a reload via authToken.
             if (rememberMe) {
                 localStorage.setItem('email', email);
-                localStorage.setItem('password', password);
             } else {
                 localStorage.removeItem('email');
-                localStorage.removeItem('password');
             }
 
             setModal({ show: true, message: 'Login successful!' });
