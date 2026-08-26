@@ -187,14 +187,18 @@ const Sidebar = ({ setIsAuthenticated }) => {
             /* The rail is 76px wide, so only the figure fits */
             <BrandMark />
           )}
-          <button
-            className="sidebar-collapse-btn"
-            onClick={() => (isMobile ? setIsMobileOpen(false) : setIsOpen((prev) => !prev))}
-            aria-label={isMobile ? 'Close navigation' : isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            title={isMobile ? 'Close navigation' : isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-          >
-            {isMobile ? <X size={18} /> : isOpen ? <PanelLeftClose size={17} /> : <PanelLeftOpen size={17} />}
-          </button>
+          {/* Closing a drawer belongs at its top corner; collapsing to the rail
+              is a different action and now lives down in the footer. */}
+          {isMobile && (
+            <button
+              className="sidebar-close-btn"
+              onClick={() => setIsMobileOpen(false)}
+              aria-label="Close navigation"
+              title="Close navigation"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
@@ -279,6 +283,19 @@ const Sidebar = ({ setIsAuthenticated }) => {
             <LogOut size={17} strokeWidth={1.75} />
             {showLabels && <span>Logout Account</span>}
           </button>
+
+          {/* Pointless on a drawer, which is either open or dismissed */}
+          {!isMobile && (
+            <button
+              className="sidebar-collapse-btn"
+              onClick={() => setIsOpen((prev) => !prev)}
+              aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+            >
+              {isOpen ? <PanelLeftClose size={17} strokeWidth={1.75} /> : <PanelLeftOpen size={17} strokeWidth={1.75} />}
+              {showLabels && <span>Collapse</span>}
+            </button>
+          )}
         </div>
       </aside>
     </>
