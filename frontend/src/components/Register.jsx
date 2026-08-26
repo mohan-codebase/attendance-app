@@ -246,6 +246,7 @@ const Register = ({ setIsAuthenticated }) => {
             </form>
 
             <GoogleAuthButton
+              mode="signup"
               setIsAuthenticated={setIsAuthenticated}
               onError={(message) => {
                 setModal({ show: true, message });

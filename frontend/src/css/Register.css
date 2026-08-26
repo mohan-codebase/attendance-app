@@ -143,15 +143,12 @@
   }
 }
 
+/* Full width, so it lines up with the Google button underneath it */
 .auth-submit {
-  width: 50%;
+  width: 100%;
 }
 
 @media (max-width: 575.98px) {
-  .auth-submit {
-    width: 100%;
-  }
-
   .auth-options {
     flex-wrap: wrap;
     gap: 8px;

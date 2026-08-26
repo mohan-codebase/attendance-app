@@ -802,34 +802,89 @@ body[data-sidebar='collapsed'] .main-content.with-sidebar {
 /* ===== Google sign-in ===== */
 
 .google-auth {
-  margin-top: 1.5rem;
+  position: relative;
+  margin-top: 10px;
 }
 
+/* Short rules either side of the word, as in the design */
 .google-auth-divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 1rem;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
   color: var(--text-muted-color);
   font-size: 13px;
+  font-style: italic;
 }
 
 .google-auth-divider::before,
 .google-auth-divider::after {
   content: '';
-  flex: 1;
+  flex: 0 0 14px;
   height: 1px;
   background-color: var(--border-color);
 }
 
-.google-auth-button {
+/* Full-width outlined button matching the primary action above it */
+.google-auth-btn {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 20px;
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.google-auth-button[aria-busy='true'] {
-  opacity: 0.6;
+.google-auth-btn:hover:not(:disabled) {
+  background-color: var(--day-hover-background-color);
+  border-color: var(--button-hover-background-color);
+}
+
+.google-auth-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem var(--input-focus-shadow-color);
+}
+
+.google-auth-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.google-auth-btn svg {
+  flex-shrink: 0;
+}
+
+.google-auth-hint {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted-color);
+}
+
+/* Google's own button. It has to stay rendered for its click handler to work,
+   but it is moved out of view because the visible button above forwards to it.
+   Not display:none — Google's script skips painting a hidden container. */
+.google-auth-native {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 300px;
+  overflow: hidden;
+  opacity: 0;
   pointer-events: none;
+}
+
+.google-auth[aria-busy='true'] .google-auth-btn {
+  opacity: 0.6;
 }
 
 /* ===== Slide-down animation ===== */
