@@ -9,6 +9,7 @@ import {
   Plus,
   Settings as SettingsIcon,
   CircleHelp,
+  UserCog,
   ChevronDown,
   ChevronUp,
   LogOut,
@@ -36,6 +37,7 @@ const navSections = [
   {
     label: 'Settings',
     items: [
+      { path: '/profile', icon: UserCog, label: 'Profile' },
       { path: '/settings', icon: SettingsIcon, label: 'Settings', children: [{ path: '/settings', label: 'Preferences' }] },
       { path: '/help', icon: CircleHelp, label: 'Help' },
     ],
@@ -130,6 +132,21 @@ const Sidebar = ({ setIsAuthenticated }) => {
       delete document.body.dataset.sidebar;
     };
   }, [isMobile, isOpen]);
+
+  // Profile saves rewrite the cached copy, so the footer would otherwise show
+  // the old name until the next full load.
+  useEffect(() => {
+    const reread = () => {
+      try {
+        const info = JSON.parse(localStorage.getItem('userInfo'));
+        if (info) setUser(info);
+      } catch {
+        /* a corrupt copy is handled by the session check above */
+      }
+    };
+    window.addEventListener('userinfo-changed', reread);
+    return () => window.removeEventListener('userinfo-changed', reread);
+  }, []);
 
   // An open drawer covers the page, so the page behind it must not scroll.
   useEffect(() => {
@@ -264,7 +281,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
         {/* Account + logout */}
         <div className="sidebar-footer">
           {user && (
-            <div className="sidebar-account">
+            <Link to="/profile" className="sidebar-account" title="View profile">
               {user.avatar ? (
                 <img src={user.avatar} alt="" className="sidebar-account-avatar" />
               ) : (
@@ -276,7 +293,7 @@ const Sidebar = ({ setIsAuthenticated }) => {
                   <span className="sidebar-account-org">{user.instituteName || user.name}</span>
                 </div>
               )}
-            </div>
+            </Link>
           )}
 
           <button onClick={handleLogout} className="sidebar-logout" title="Logout">

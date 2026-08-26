@@ -13,6 +13,7 @@ import Register from './components/Register';
 import Startingpage from './components/Startingpage';
 import Dashboard from './components/Dashboard';
 import Help from './components/Help';
+import Profile from './components/Profile';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import ThemeToggle from './components/ThemeToggle';
@@ -84,6 +85,7 @@ const App = () => {
         <div className={`main-content ${isAuthenticated ? 'with-sidebar' : ''}`}>
           <Routes>
             <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Startingpage />} />
+            <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
             <Route path="/settings" element={isAuthenticated ? <Settings theme={theme} setTheme={setTheme} /> : <Navigate to="/login" />} />
             <Route path="/courses" element={isAuthenticated ? <Courses /> : <Navigate to="/login" />} />
             <Route path="/attendances" element={isAuthenticated ? <Attendances /> : <Navigate to="/login" />} />

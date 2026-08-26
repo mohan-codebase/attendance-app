@@ -265,12 +265,28 @@
   border-top: 1px solid var(--border-subtle-color);
 }
 
+/* A link to the profile page since it carries the account's own details */
 .sidebar-account {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 4px 12px;
+  padding: 6px 6px 10px;
+  margin-bottom: 2px;
+  border-radius: 10px;
   min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-account:hover {
+  background-color: var(--day-hover-background-color);
+  text-decoration: none;
+  color: inherit;
+}
+
+.sidebar-account:hover .sidebar-account-org {
+  color: var(--primary-color);
 }
 
 .sidebar-account-avatar {
