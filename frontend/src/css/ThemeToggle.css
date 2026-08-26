@@ -1,0 +1,53 @@
+/* ===========================
+   Floating theme toggle
+   =========================== */
+
+.theme-toggle {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  /* Above the sidebar drawer (1000) and its overlay, below Bootstrap's modal
+     backdrop (1050) so a dialog is never covered by it. */
+  z-index: 1030;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(20, 20, 40, 0.16);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--day-hover-background-color);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.theme-toggle:focus-visible {
+  outline: none;
+  border-color: var(--input-focus-border-color);
+  box-shadow: 0 0 0 0.25rem var(--input-focus-shadow-color);
+}
+
+.theme-toggle:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 575.98px) {
+  .theme-toggle {
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: 42px;
+    height: 42px;
+  }
+}

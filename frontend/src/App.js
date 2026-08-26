@@ -13,6 +13,7 @@ import Register from './components/Register';
 import Startingpage from './components/Startingpage';
 import Dashboard from './components/Dashboard';
 import Help from './components/Help';
+import ThemeToggle from './components/ThemeToggle';
 
 import './App.css';
 
@@ -72,10 +73,13 @@ const App = () => {
     <Router basename={process.env.PUBLIC_URL}>
       <div className="app">
         {isAuthenticated && <Sidebar setIsAuthenticated={setIsAuthenticated} />}
+        {/* Outside the routes, so it is on every screen — login and register
+            included, where there is no sidebar to reach Settings from. */}
+        <ThemeToggle setTheme={setTheme} />
         <div className={`main-content ${isAuthenticated ? 'with-sidebar' : ''}`}>
           <Routes>
             <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Startingpage />} />
-            <Route path="/settings" element={isAuthenticated ? <Settings setTheme={setTheme} /> : <Navigate to="/login" />} />
+            <Route path="/settings" element={isAuthenticated ? <Settings theme={theme} setTheme={setTheme} /> : <Navigate to="/login" />} />
             <Route path="/courses" element={isAuthenticated ? <Courses /> : <Navigate to="/login" />} />
             <Route path="/attendances" element={isAuthenticated ? <Attendances /> : <Navigate to="/login" />} />
             <Route path="/report/:studentId?" element={isAuthenticated ? <Report /> : <Navigate to="/login" />} />

@@ -429,6 +429,10 @@ progress {
      card row) stretch the page instead of scrolling inside its own container. */
   min-width: 0;
   padding: 20px;
+  /* The floating theme toggle sits in the bottom-right corner, so every screen
+     keeps room beneath its last element — the attendance Submit button is full
+     width and lands exactly there. */
+  padding-bottom: 76px;
   transition: margin-left 0.3s ease;
 }
 
@@ -468,7 +472,6 @@ body[data-sidebar='collapsed'] .main-content.with-sidebar {
   .main-content {
     padding-left: 12px;
     padding-right: 12px;
-    padding-bottom: 28px;
   }
 }
 

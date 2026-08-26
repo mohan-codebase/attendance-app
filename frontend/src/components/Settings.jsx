@@ -8,8 +8,10 @@ import settings from '../img/Settings.png';
 import '../css/Setting.css';
 import Model from './Model';
 
-const Settings = ({ setTheme }) => {
-  const [localTheme, setLocalTheme] = useState(localStorage.getItem('preferredTheme') || "system");
+const Settings = ({ theme, setTheme }) => {
+  // Driven by App's state rather than a local copy, so the picker stays in step
+  // with the floating theme toggle.
+  const localTheme = theme || localStorage.getItem('preferredTheme') || "system";
   const [studentNotification, setStudentNotification] = useState("");
   const [studentTime, setStudentTime] = useState(0);
   const [systemNotifications, setSystemNotifications] = useState(true);
@@ -52,7 +54,6 @@ const Settings = ({ setTheme }) => {
   }, []);
 
   const handleThemeChange = (mode) => {
-    setLocalTheme(mode);
     setTheme(mode);
     localStorage.setItem('preferredTheme', mode);
   };
