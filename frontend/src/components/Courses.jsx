@@ -8,6 +8,7 @@ import { Form } from 'react-bootstrap';
 import { COURSES } from '../constants/courses';
 import '../css/Courses.css';
 import Modal from './Modal';  // Custom lightweight notification Modal
+import Preloader from './Preloader';
 
 const Courses = () => {
   const [admissions, setAdmissions] = useState([]);
@@ -37,22 +38,23 @@ const Courses = () => {
   const [batches, setBatches] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState('All');
 
-  useEffect(() => {
-    const fetchAdmissions = async () => {
-      try {
-        const response = await api.get('/api/admissions');
-        const sorted = response.data.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setAdmissions(sorted);
-        setLoading(false);
-        const batchList = Array.from(new Set(response.data.map(student => student.batch).filter(Boolean)));
-        setBatches(batchList);
-      } catch (error) {
-        console.error('Error fetching admissions:', error);
-        setError('Error fetching admissions');
-        setLoading(false);
-      }
-    };
+  const fetchAdmissions = async () => {
+    try {
+      setError('');
+      const response = await api.get('/api/admissions');
+      const sorted = response.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setAdmissions(sorted);
+      const batchList = Array.from(new Set(response.data.map(student => student.batch).filter(Boolean)));
+      setBatches(batchList);
+    } catch (error) {
+      console.error('Error fetching admissions:', error);
+      setError('Error fetching admissions');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAdmissions();
   }, []);
 
@@ -147,7 +149,16 @@ const Courses = () => {
   ];
 
   if (loading) {
-    return <div className="alert alert-info">Loading...</div>;
+    return (
+      <Preloader
+        message="Loading Courses & Admissions…"
+        subMessage="Gathering registered curriculum tracks and batch rosters…"
+        onRetry={() => {
+          setLoading(true);
+          fetchAdmissions();
+        }}
+      />
+    );
   }
 
   if (error) {

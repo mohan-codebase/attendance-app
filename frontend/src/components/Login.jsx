@@ -4,6 +4,7 @@ import api from '../api';
 import Modal from './Modal';
 import GoogleAuthButton from './GoogleAuthButton';
 import { BrandLogo } from './Brand';
+import Preloader from './Preloader';
 import person1 from '../img/character-1.png'; // Person 1
 import person2 from '../img/character-2.png'; // Person 2
 import '../css/Login.css'; // Import the Login.css file
@@ -87,6 +88,7 @@ const Login = ({ setIsAuthenticated }) => {
         }
 
         const { email, password, rememberMe } = formData;
+        const startTime = Date.now();
 
         setLoading(true); // Start loading
 
@@ -95,6 +97,12 @@ const Login = ({ setIsAuthenticated }) => {
                 email,
                 password,
             });
+
+            // Enforce intentional 2 second loading experience
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 2000) {
+                await new Promise((resolve) => setTimeout(resolve, 2000 - elapsed));
+            }
 
             localStorage.setItem('authToken', response.data.token);
             localStorage.setItem('userInfo', JSON.stringify(response.data.user));
@@ -108,14 +116,15 @@ const Login = ({ setIsAuthenticated }) => {
                 localStorage.removeItem('email');
             }
 
-            setModal({ show: true, message: 'Login successful!' });
-            setTimeout(() => {
-                setModal({ show: false, message: '' });
-                navigate('/dashboard');
-            }, 0.100);
+            navigate('/dashboard');
         } catch (err) {
+            // Keep error transition smooth
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 800) {
+                await new Promise((resolve) => setTimeout(resolve, 800 - elapsed));
+            }
             console.error(err);
-            setModal({ show: true, message: 'Invalid email or password' });
+            setModal({ show: true, message: err.response?.data?.message || 'Invalid email or password' });
             setTimeout(() => setModal({ show: false, message: '' }), 2000); // Close modal after 2 seconds
         } finally {
             setLoading(false); // Stop loading
@@ -220,6 +229,16 @@ const Login = ({ setIsAuthenticated }) => {
             </div>
 
             <Modal show={modal.show} message={modal.message} onClose={handleCloseModal} />
+            {loading && (
+                <Preloader
+                    fullScreen
+                    message="Signing You In…"
+                    subMessage="Verifying credentials and loading your workspace…"
+                    showMilestones={false}
+                    showTips={false}
+                    showTimer={false}
+                />
+            )}
         </div>
     );
 };
