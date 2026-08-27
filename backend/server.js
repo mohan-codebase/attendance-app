@@ -8,8 +8,15 @@ const requireAuth = require("./middleware/auth");
 const User = require("./models/User");
 
 const path = require("path");
+const fs = require("fs");
 
-dotenv.config({ path: path.resolve(__dirname, ".env") });
+const envFile =
+  process.env.NODE_ENV === "production" &&
+  fs.existsSync(path.resolve(__dirname, ".env.production"))
+    ? ".env.production"
+    : ".env";
+
+dotenv.config({ path: path.resolve(__dirname, envFile) });
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -43,7 +50,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
+// Profile photos are sent inline as base64 data URIs, so the body can be a few
+// hundred KB — well past express' 100kb default.
+app.use(express.json({ limit: "5mb" }));
 
 // Health check endpoint
 app.get("/", (req, res) => {
@@ -365,12 +374,41 @@ app.get('/api/user', async (req, res) => {
   }
 });
 
+// Accepts a stored avatar value: an empty string (clear it), an http(s) URL
+// (e.g. the one Google gives us), or an inline base64 image no larger than
+// ~800 KB decoded. Anything else is rejected so we don't persist junk.
+const MAX_AVATAR_BYTES = 800 * 1024;
+const checkAvatar = (avatar) => {
+  if (avatar === null || avatar === '') return { ok: true, value: '' };
+  if (typeof avatar !== 'string') return { ok: false };
+  if (/^https?:\/\//i.test(avatar)) return { ok: true, value: avatar };
+  if (!/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(avatar)) return { ok: false };
+  const b64 = avatar.slice(avatar.indexOf(',') + 1);
+  const bytes = Math.floor((b64.length * 3) / 4);
+  if (bytes > MAX_AVATAR_BYTES) return { ok: false, tooBig: true };
+  return { ok: true, value: avatar };
+};
+
 app.put('/api/user', async (req, res) => {
   try {
-    const { name, email, instituteName, mobileNumber } = req.body;
+    const { name, email, instituteName, mobileNumber, avatar } = req.body;
+    const update = { name, email, instituteName, mobileNumber };
+
+    if (avatar !== undefined) {
+      const result = checkAvatar(avatar);
+      if (!result.ok) {
+        return res.status(400).json({
+          error: result.tooBig
+            ? 'That image is too large. Please choose a smaller one.'
+            : 'That does not look like a valid image.',
+        });
+      }
+      update.avatar = result.value;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.userId,
-      { name, email, instituteName, mobileNumber },
+      update,
       { new: true, runValidators: true }
     ).select('-password');
 

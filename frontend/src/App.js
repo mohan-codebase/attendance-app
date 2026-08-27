@@ -7,10 +7,9 @@ import Courses from './components/Courses';
 import Attendances from './components/Attendances';
 import Report from './components/Report';
 import Calendar from './components/Calendar';
-import AddAdmission from './components/AddAdmission';
 import Login from './components/Login';
 import Register from './components/Register';
-import Startingpage from './components/Startingpage';
+import StartingPage from './components/StartingPage';
 import Dashboard from './components/Dashboard';
 import Help from './components/Help';
 import Profile from './components/Profile';
@@ -81,17 +80,17 @@ const App = () => {
         {isAuthenticated && <Sidebar setIsAuthenticated={setIsAuthenticated} />}
         {/* Outside the routes, so it is on every screen — login and register
             included, where there is no sidebar to reach Settings from. */}
-        <ThemeToggle setTheme={setTheme} />
+        <ThemeToggle setTheme={setTheme} isAuthenticated={isAuthenticated} />
         <div className={`main-content ${isAuthenticated ? 'with-sidebar' : ''}`}>
           <Routes>
-            <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Startingpage />} />
+            <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <StartingPage />} />
             <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
             <Route path="/settings" element={isAuthenticated ? <Settings theme={theme} setTheme={setTheme} /> : <Navigate to="/login" />} />
             <Route path="/courses" element={isAuthenticated ? <Courses /> : <Navigate to="/login" />} />
             <Route path="/attendances" element={isAuthenticated ? <Attendances /> : <Navigate to="/login" />} />
             <Route path="/report/:studentId?" element={isAuthenticated ? <Report /> : <Navigate to="/login" />} />
             <Route path="/calendar" element={isAuthenticated ? <Calendar /> : <Navigate to="/login" />} />
-            <Route path="/add-admission" element={isAuthenticated ? <AddAdmission /> : <Navigate to="/login" />} />
+            <Route path="/add-admission" element={isAuthenticated ? <Navigate to="/dashboard?openAdmission=true" replace /> : <Navigate to="/login" />} />
             <Route path="/help" element={<Help />} />
             <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
             <Route path="/register" element={<Register setIsAuthenticated={setIsAuthenticated} />} />

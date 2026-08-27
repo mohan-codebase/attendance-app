@@ -3,7 +3,7 @@ import api from '../api';
 import moment from 'moment';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { Search, Bell, UserRound, CircleUserRound, Calendar } from 'lucide-react';
+import { Search, UserRound, CircleUserRound, Calendar } from 'lucide-react';
 import { STATUSES, resolveDay } from '../constants/attendance';
 import '../css/Attendance.css';
 
@@ -148,9 +148,6 @@ const Attendances = () => {
               aria-label="Search students"
             />
           </div>
-          <button className="att-bell" type="button" aria-label="Notifications">
-            <Bell size={20} strokeWidth={1.75} />
-          </button>
         </div>
       </header>
 

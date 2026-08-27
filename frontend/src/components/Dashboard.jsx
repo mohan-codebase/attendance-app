@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api';
 import moment from 'moment';
 import { Doughnut, Bar } from 'react-chartjs-2';
@@ -11,10 +12,11 @@ import {
   LinearScale,
   BarElement,
 } from 'chart.js';
-import { Search, Bell, House } from 'lucide-react';
+import { Search, House, Plus, BookOpen } from 'lucide-react';
 import { COURSES } from '../constants/courses';
 import { ABSENT, resolveDay, isAttended } from '../constants/attendance';
 import { centerLabel } from '../utils/chartPlugins';
+import AdmissionModal from './AdmissionModal';
 import '../css/Dashboard.css';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -39,10 +41,9 @@ const useThemeName = () => {
   return theme;
 };
 
-// resolveDay / isAttended live in constants/attendance so the dashboard, the
-// attendance list and the report all read a day's records the same way.
-
 const Dashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [admissions, setAdmissions] = useState([]);
   const [events, setEvents] = useState([]);
   const [attendance, setAttendance] = useState([]);
@@ -50,6 +51,7 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showAdmissionModal, setShowAdmissionModal] = useState(false);
 
   const theme = useThemeName();
   const isDark = theme === 'dark';
@@ -59,41 +61,55 @@ const Dashboard = () => {
   const axisColor = isDark ? '#a8aeb5' : '#8b909a';
   const centerColor = isDark ? '#ffffff' : '#33353a';
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadData = useCallback(async () => {
+    try {
+      const [admissionsRes, eventsRes, attendanceRes] = await Promise.allSettled([
+        api.get('/api/admissions'),
+        api.get('/api/events'),
+        api.get('/api/attendance'),
+      ]);
 
-    const load = async () => {
-      try {
-        const [admissionsRes, eventsRes, attendanceRes] = await Promise.allSettled([
-          api.get('/api/admissions'),
-          api.get('/api/events'),
-          api.get('/api/attendance'),
-        ]);
-
-        if (cancelled) return;
-
-        if (admissionsRes.status === 'fulfilled') {
-          setAdmissions(admissionsRes.value.data);
-        } else {
-          setError('Error fetching admissions data');
-        }
-        if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value.data);
-        if (attendanceRes.status === 'fulfilled') setAttendance(attendanceRes.value.data);
-      } finally {
-        if (!cancelled) setLoading(false);
+      if (admissionsRes.status === 'fulfilled') {
+        setAdmissions(admissionsRes.value.data);
+      } else {
+        setError('Error fetching admissions data');
       }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-    };
+      if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value.data);
+      if (attendanceRes.status === 'fulfilled') setAttendance(attendanceRes.value.data);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Open modal if redirected with ?openAdmission=true query param
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('openAdmission') === 'true') {
+      setShowAdmissionModal(true);
+      // Clean query parameter from URL without page reload
+      navigate('/dashboard', { replace: true });
+    }
+  }, [location.search, navigate]);
+
+  // Global event listener to open admission modal or reload on addition
+  useEffect(() => {
+    const handleOpenModal = () => setShowAdmissionModal(true);
+    const handleAdmissionAdded = () => loadData();
+
+    window.addEventListener('open-add-admission', handleOpenModal);
+    window.addEventListener('admission-added', handleAdmissionAdded);
+
+    return () => {
+      window.removeEventListener('open-add-admission', handleOpenModal);
+      window.removeEventListener('admission-added', handleAdmissionAdded);
+    };
+  }, [loadData]);
+
   // --- Course cards -------------------------------------------------------
-  // Every offered course gets a card whether or not anyone is enrolled, so the
-  // hero never collapses to an empty state. Courses found in the data but not
-  // in the offered list are appended so no student goes uncounted.
   const courseCounts = useMemo(() => {
     const grouped = admissions.reduce((acc, admission) => {
       const course = admission.course || 'Unassigned';
@@ -106,8 +122,6 @@ const Dashboard = () => {
       .filter((course) => !COURSES.includes(course))
       .map((course) => ({ course, count: grouped[course] }));
 
-    // Courses with students lead so they aren't scrolled off behind empty ones;
-    // offered order is preserved within each group.
     const all = [...offered, ...extras];
     return [...all.filter((c) => c.count > 0), ...all.filter((c) => c.count === 0)];
   }, [admissions]);
@@ -119,7 +133,6 @@ const Dashboard = () => {
       (record) => moment(record.date).format('YYYY-MM-DD') === today
     );
     const statuses = Object.values(resolveDay(todays));
-    // Late counts as attended, so the two slices still add up to 100%.
     const present = statuses.filter(isAttended).length;
     const absent = statuses.filter((s) => s === ABSENT).length;
     const total = present + absent;
@@ -169,8 +182,6 @@ const Dashboard = () => {
   }, [events]);
 
   // --- Top students -------------------------------------------------------
-  // Attendance rate per student across every day they were marked. Students
-  // with no marks yet still appear, at 0%, so the table is never empty.
   const topStudents = useMemo(() => {
     const byDate = attendance.reduce((acc, record) => {
       const key = moment(record.date).format('YYYY-MM-DD');
@@ -326,8 +337,15 @@ const Dashboard = () => {
               aria-label="Search student name"
             />
           </div>
-          <button className="dash-bell" type="button" aria-label="Notifications">
-            <Bell size={20} strokeWidth={1.75} />
+
+          <button
+            className="dash-add-btn"
+            type="button"
+            onClick={() => setShowAdmissionModal(true)}
+            title="Add Admission"
+          >
+            <Plus size={16} strokeWidth={2.2} />
+            <span>Add Admission</span>
           </button>
         </div>
       </header>
@@ -359,9 +377,19 @@ const Dashboard = () => {
 
       {/* Hero: course counts */}
       <section className="dash-hero">
-        <div className="dash-hero-copy">
-          <h2>Our courses</h2>
-          <p>Number of student in each courses</p>
+        <div className="dash-hero-header">
+          <div className="dash-hero-copy">
+            <h2>Our courses</h2>
+            <p>Number of student in each courses</p>
+          </div>
+          <Link
+            to="/courses"
+            className="dash-hero-action-btn"
+            title="View all courses"
+          >
+            <BookOpen size={16} strokeWidth={1.8} />
+            <span>All courses</span>
+          </Link>
         </div>
 
         <div className="dash-course-row">
@@ -473,6 +501,13 @@ const Dashboard = () => {
           </table>
         </div>
       </section>
+
+      {/* Admission modal */}
+      <AdmissionModal
+        show={showAdmissionModal}
+        onHide={() => setShowAdmissionModal(false)}
+        onAdmissionAdded={loadData}
+      />
     </div>
   );
 };

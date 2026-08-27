@@ -1,15 +1,22 @@
 /* ===========================
-   Floating theme toggle
+   Floating Quick Action Controls
    =========================== */
 
-.theme-toggle {
+.floating-controls {
   position: fixed;
   right: max(18px, env(safe-area-inset-right));
   bottom: max(18px, env(safe-area-inset-bottom));
   /* Above the sidebar drawer (1000) and its overlay, below Bootstrap's modal
      backdrop (1050) so a dialog is never covered by it. */
   z-index: 1030;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
 
+.floating-btn,
+.theme-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -23,31 +30,55 @@
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(20, 20, 40, 0.16);
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Add Admission Quick Action Toggle */
+.floating-btn--admission {
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+  border-color: var(--primary-color);
+}
+
+.floating-btn--admission:hover {
+  background-color: var(--button-hover-background-color);
+  border-color: var(--button-hover-border-color);
+  color: var(--button-hover-text-color);
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 6px 18px rgba(164, 94, 229, 0.4);
+}
+
+/* Theme Toggle */
+.floating-btn--theme:hover,
 .theme-toggle:hover {
   background-color: var(--day-hover-background-color);
   border-color: var(--primary-color);
   color: var(--primary-color);
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.06);
 }
 
+.floating-btn:focus-visible,
 .theme-toggle:focus-visible {
   outline: none;
   border-color: var(--input-focus-border-color);
   box-shadow: 0 0 0 0.25rem var(--input-focus-shadow-color);
 }
 
+.floating-btn:active,
 .theme-toggle:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.96);
 }
 
 @media (max-width: 575.98px) {
-  .theme-toggle {
+  .floating-controls {
     right: max(14px, env(safe-area-inset-right));
     bottom: max(14px, env(safe-area-inset-bottom));
-    width: 42px;
-    height: 42px;
+    gap: 8px;
+  }
+
+  .floating-btn,
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
   }
 }

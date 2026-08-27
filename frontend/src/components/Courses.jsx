@@ -3,12 +3,11 @@ import api from '../api';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import moment from 'moment';
-import book from '../img/book 2.png';
-import bell from '../img/bell 1.png';
+import book from '../img/book.png';
 import { Form } from 'react-bootstrap';
 import { COURSES } from '../constants/courses';
 import '../css/Courses.css';
-import Model from './Model';  // Importing our custom Modal
+import Modal from './Modal';  // Custom lightweight notification Modal
 
 const Courses = () => {
   const [admissions, setAdmissions] = useState([]);
@@ -57,14 +56,14 @@ const Courses = () => {
     fetchAdmissions();
   }, []);
 
-  const groupByCourse = (admissions) => {
+  const groupByCourse = (list) => {
     return COURSES.reduce((groups, course) => {
-      groups[course] = admissions.filter(admission => admission.course === course);
+      groups[course] = list.filter(item => item.course === course);
       return groups;
     }, {});
   };
 
-  const groupedAdmissions = groupByCourse(admissions);
+
 
   const handleEdit = (admission) => {
     setEditingAdmission(admission._id);
@@ -160,11 +159,8 @@ const Courses = () => {
       {/* Header Section */}
       <div className="d-flex justify-content-between align-items-center mb-4 gap-2">
         <div className="d-flex align-items-center gap-3">
-          <img src={book} className="book" alt="Courses" style={{ height: '30px', width: '30px'  }} />
+          <img src={book} className="book" alt="Courses" style={{ height: '30px', width: '30px' }} />
           <h3 className="course">Courses</h3>
-        </div>
-        <div>
-          <img src={bell} className="bell" alt="Notifications" style={{ height: '30px', width: '30px' }} />
         </div>
       </div>
 
@@ -195,13 +191,13 @@ const Courses = () => {
         </div>
       )}
 
-         {/* Pop-up Messages using Model component */}
-         <Model 
+      {/* Pop-up Messages using Modal component */}
+      <Modal 
         show={!!successMessage} 
         message={successMessage} 
         onClose={() => setSuccessMessage('')} 
       />
-      <Model 
+      <Modal 
         show={!!errorMessage} 
         message={errorMessage} 
         onClose={() => setErrorMessage('')} 
