@@ -9,6 +9,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Modal as BsModal, Button, Badge } from 'react-bootstrap';
 import NotificationModal from './Modal';
+import Preloader from './Preloader';
 import '../css/Calendar.css';
 
 const localizer = momentLocalizer(moment);
@@ -27,6 +28,7 @@ const toCalendarEvent = (event) => ({
 const Calendar = () => {
   // State declarations
   const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [newEvent, setNewEvent] = useState({
     title: '',
     start: null,
@@ -44,27 +46,29 @@ const Calendar = () => {
   const [showModel, setShowModel] = useState(false);
   const [editEvent, setEditEvent] = useState(null);
 
+  const fetchData = async () => {
+    try {
+      // Fetch events
+      const eventsResponse = await api.get('/api/events');
+      const formattedEvents = eventsResponse.data.map(toCalendarEvent);
+      setEvents(formattedEvents);
+
+      // Fetch batches and courses
+      const admissionsResponse = await api.get('/api/admissions');
+      const admissionsData = admissionsResponse.data;
+      const uniqueBatches = [...new Set(admissionsData.map(item => item.batch))].filter(Boolean);
+      const uniqueCourses = [...new Set(admissionsData.map(item => item.course))].filter(Boolean);
+      setBatches(uniqueBatches);
+      setCourses(uniqueCourses);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch data on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch events
-        const eventsResponse = await api.get('/api/events');
-        const formattedEvents = eventsResponse.data.map(toCalendarEvent);
-        setEvents(formattedEvents);
-
-        // Fetch batches and courses
-        const admissionsResponse = await api.get('/api/admissions');
-        const admissionsData = admissionsResponse.data;
-        const uniqueBatches = [...new Set(admissionsData.map(item => item.batch))].filter(Boolean);
-        const uniqueCourses = [...new Set(admissionsData.map(item => item.course))].filter(Boolean);
-        setBatches(uniqueBatches);
-        setCourses(uniqueCourses);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
     fetchData();
   }, []);
 
@@ -189,6 +193,19 @@ const Calendar = () => {
       </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <Preloader
+        message="Loading Academic Calendar…"
+        subMessage="Synchronizing scheduled events, batch timelines, and courses…"
+        onRetry={() => {
+          setLoading(true);
+          fetchData();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="container mt-3 mt-md-4">

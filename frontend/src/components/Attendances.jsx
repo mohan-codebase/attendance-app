@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Search, UserRound, CircleUserRound, Calendar } from 'lucide-react';
 import { STATUSES, resolveDay } from '../constants/attendance';
+import Preloader from './Preloader';
 import '../css/Attendance.css';
 
 const ALL = 'All';
@@ -26,18 +27,20 @@ const Attendances = () => {
   // Marks are staged locally and written once the user presses Submit.
   const [marks, setMarks] = useState({});
 
+  const fetchStudents = async () => {
+    try {
+      setError('');
+      const response = await api.get('/api/admissions');
+      setStudents(response.data);
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      setError('Error fetching students');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const response = await api.get('/api/admissions');
-        setStudents(response.data);
-      } catch (err) {
-        console.error('Error fetching students:', err);
-        setError('Error fetching students');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchStudents();
   }, []);
 
@@ -126,7 +129,18 @@ const Attendances = () => {
     </select>
   );
 
-  if (loading) return <div className="att-state">Loading students…</div>;
+  if (loading) {
+    return (
+      <Preloader
+        message="Loading Student Attendances…"
+        subMessage="Fetching enrollment records and daily attendance status…"
+        onRetry={() => {
+          setLoading(true);
+          fetchStudents();
+        }}
+      />
+    );
+  }
   if (error) return <div className="att-state att-state--error">{error}</div>;
 
   return (

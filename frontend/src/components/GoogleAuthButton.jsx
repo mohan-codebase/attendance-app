@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import api from '../api';
+import Preloader from './Preloader';
 
 const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
@@ -79,11 +80,18 @@ const GoogleAuthButton = ({ setIsAuthenticated, onError, mode = 'signin' }) => {
   }
 
   const handleSuccess = async (credentialResponse) => {
+    const startTime = Date.now();
     setBusy(true);
     try {
       const response = await api.post('/api/users/google', {
         credential: credentialResponse.credential,
       });
+
+      // Enforce intentional 2 second loading experience
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 2000) {
+        await new Promise((resolve) => setTimeout(resolve, 2000 - elapsed));
+      }
 
       localStorage.setItem('authToken', response.data.token);
       localStorage.setItem('userInfo', JSON.stringify(response.data.user));
@@ -93,6 +101,10 @@ const GoogleAuthButton = ({ setIsAuthenticated, onError, mode = 'signin' }) => {
       // land on Settings to fill them in.
       navigate(response.data.profileComplete ? '/dashboard' : '/settings');
     } catch (err) {
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 800) {
+        await new Promise((resolve) => setTimeout(resolve, 800 - elapsed));
+      }
       console.error('Google sign-in failed:', err);
       if (onError) {
         onError(
@@ -118,31 +130,43 @@ const GoogleAuthButton = ({ setIsAuthenticated, onError, mode = 'signin' }) => {
   };
 
   return (
-    <div className="google-auth" aria-busy={busy}>
-      <div className="google-auth-divider">
-        <span>or</span>
+    <>
+      <div className="google-auth" aria-busy={busy}>
+        <div className="google-auth-divider">
+          <span>or</span>
+        </div>
+
+        <button type="button" className="google-auth-btn" onClick={openGoogle} disabled={busy}>
+          <GoogleMark />
+          <span>{busy ? 'Signing in…' : label}</span>
+        </button>
+
+        {/* The real Google button: rendered (so its click handler is live) but
+            moved off-screen. Never remove it — it is what actually signs you in. */}
+        <div className="google-auth-native" ref={nativeRef} aria-hidden="true">
+          <GoogleLogin
+            onSuccess={handleSuccess}
+            onError={() => onError && onError('Google sign-in was cancelled or failed.')}
+            theme={theme === 'dark' ? 'filled_black' : 'outline'}
+            shape="rectangular"
+            size="large"
+            width="280"
+            text={mode === 'signup' ? 'signup_with' : 'signin_with'}
+            useOneTap={false}
+          />
+        </div>
       </div>
-
-      <button type="button" className="google-auth-btn" onClick={openGoogle} disabled={busy}>
-        <GoogleMark />
-        <span>{busy ? 'Signing in…' : label}</span>
-      </button>
-
-      {/* The real Google button: rendered (so its click handler is live) but
-          moved off-screen. Never remove it — it is what actually signs you in. */}
-      <div className="google-auth-native" ref={nativeRef} aria-hidden="true">
-        <GoogleLogin
-          onSuccess={handleSuccess}
-          onError={() => onError && onError('Google sign-in was cancelled or failed.')}
-          theme={theme === 'dark' ? 'filled_black' : 'outline'}
-          shape="rectangular"
-          size="large"
-          width="280"
-          text={mode === 'signup' ? 'signup_with' : 'signin_with'}
-          useOneTap={false}
+      {busy && (
+        <Preloader
+          fullScreen
+          message="Signing in with Google…"
+          subMessage="Authenticating Google account and setting up your workspace…"
+          showMilestones={false}
+          showTips={false}
+          showTimer={false}
         />
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CircleUserRound, Mail, Phone, Building2, CalendarDays, ShieldCheck, Camera } from 'lucide-react';
 import moment from 'moment';
 import api from '../api';
+import Preloader from './Preloader';
 import '../css/Profile.css';
 
 const FIELDS = [
@@ -201,7 +202,18 @@ const Profile = () => {
     setNotice('');
   };
 
-  if (loading) return <div className="pro"><p className="pro-state">Loading your profile…</p></div>;
+  if (loading) {
+    return (
+      <Preloader
+        message="Loading Your Profile…"
+        subMessage="Fetching account preferences, institute details, and user permissions…"
+        onRetry={() => {
+          setLoading(true);
+          load();
+        }}
+      />
+    );
+  }
 
   if (!user) {
     return (

@@ -17,6 +17,7 @@ import { COURSES } from '../constants/courses';
 import { ABSENT, resolveDay, isAttended } from '../constants/attendance';
 import { centerLabel } from '../utils/chartPlugins';
 import AdmissionModal from './AdmissionModal';
+import Preloader from './Preloader';
 import '../css/Dashboard.css';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -291,7 +292,16 @@ const Dashboard = () => {
   };
 
   if (loading) {
-    return <div className="dash-state">Loading dashboard…</div>;
+    return (
+      <Preloader
+        message="Loading Dashboard…"
+        subMessage="Fetching student enrollment, batch schedules, and attendance metrics…"
+        onRetry={() => {
+          setLoading(true);
+          loadData();
+        }}
+      />
+    );
   }
 
   if (selectedStudent) {

@@ -14,6 +14,7 @@ import {
 import { ChevronLeft, ChevronRight, Pencil, X, Download } from 'lucide-react';
 import { ABSENT, resolveDay, isAttended } from '../constants/attendance';
 import { centerLabel } from '../utils/chartPlugins';
+import Preloader from './Preloader';
 import '../css/Report.css';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -356,7 +357,18 @@ const Report = () => {
     </label>
   );
 
-  if (loading) return <div className="rep-state">Loading report…</div>;
+  if (loading) {
+    return (
+      <Preloader
+        message="Generating Performance Report…"
+        subMessage="Calculating attendance percentages and aggregate student metrics…"
+        onRetry={() => {
+          setLoading(true);
+          load();
+        }}
+      />
+    );
+  }
   if (error) return <div className="rep-state rep-state--error">{error}</div>;
 
   return (
