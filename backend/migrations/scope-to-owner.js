@@ -15,8 +15,16 @@
 // Safe to run more than once.
 
 const path = require("path");
+const fs = require("fs");
 const mongoose = require("mongoose");
-require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
+
+const envFile =
+  process.env.NODE_ENV === "production" &&
+  fs.existsSync(path.resolve(__dirname, "..", ".env.production"))
+    ? ".env.production"
+    : ".env";
+
+require("dotenv").config({ path: path.resolve(__dirname, "..", envFile) });
 
 const STALE_INDEXES = { admissions: ["email_1", "mobile_1"] };
 const OWNED = ["admissions", "attendances", "events", "classes", "students"];

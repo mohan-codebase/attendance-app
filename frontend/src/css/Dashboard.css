@@ -80,6 +80,33 @@
   font-size: 14px;
 }
 
+.dash-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(164, 94, 229, 0.25);
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.dash-add-btn:hover {
+  background-color: var(--button-hover-background-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(164, 94, 229, 0.35);
+}
+
+.dash-add-btn:active {
+  transform: translateY(0);
+}
+
 .dash-bell {
   display: flex;
   align-items: center;
@@ -110,6 +137,14 @@
   background-position: center;
 }
 
+.dash-hero-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
 .dash-hero-copy h2 {
   margin: 0 0 4px;
   font-size: 28px;
@@ -120,9 +155,35 @@
 }
 
 .dash-hero-copy p {
-  margin: 0 0 22px;
+  margin: 0;
   font-size: 14px;
   color: #4a4c53;
+}
+
+.dash-hero-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #1c1d21;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: background-color 0.2s ease, transform 0.15s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.dash-hero-action-btn:hover {
+  background-color: #ffffff;
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  text-decoration: none;
+  transform: translateY(-1px);
 }
 
 .dash-course-row {

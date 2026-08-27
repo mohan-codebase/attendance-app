@@ -284,7 +284,7 @@
   color: inherit;
 }
 
-.sidebar-account:hover .sidebar-account-org {
+.sidebar-account:hover .sidebar-account-name {
   color: var(--primary-color);
 }
 
@@ -312,18 +312,18 @@
   min-width: 0;
 }
 
-.sidebar-account-email {
-  font-size: 11px;
-  color: var(--text-muted-color);
+.sidebar-account-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .sidebar-account-org {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-color);
+  font-size: 11px;
+  color: var(--text-muted-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

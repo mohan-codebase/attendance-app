@@ -80,6 +80,67 @@
   letter-spacing: 0.02em;
 }
 
+/* Avatar with an overlaid camera button, and an optional "Remove" beneath */
+.pro-avatar-edit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.pro-avatar-frame {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.pro-avatar-cam {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid var(--surface-color);
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: var(--primary-text-color);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.pro-avatar-cam:hover:not(:disabled) {
+  background-color: var(--button-hover-background-color);
+}
+
+.pro-avatar-cam:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pro-avatar-remove {
+  border: none;
+  background: transparent;
+  color: var(--text-muted-color);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.pro-avatar-remove:hover:not(:disabled) {
+  color: #e5484d;
+}
+
+.pro-avatar-remove:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .pro-identity-text {
   min-width: 0;
 }
@@ -307,5 +368,10 @@
     width: 64px;
     height: 64px;
     font-size: 21px;
+  }
+
+  .pro-avatar-frame {
+    width: 64px;
+    height: 64px;
   }
 }

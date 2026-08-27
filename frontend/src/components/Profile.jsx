@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CircleUserRound, Mail, Phone, Building2, CalendarDays, ShieldCheck } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CircleUserRound, Mail, Phone, Building2, CalendarDays, ShieldCheck, Camera } from 'lucide-react';
 import moment from 'moment';
 import api from '../api';
 import '../css/Profile.css';
@@ -12,6 +12,33 @@ const FIELDS = [
 ];
 
 const EMPTY = { name: '', instituteName: '', email: '', mobileNumber: '' };
+
+const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+
+// Downscale the picked file to a square before it ever leaves the browser, so
+// what we store and ship around is a small JPEG rather than a phone photo.
+const resizeImage = (file, size = 256) =>
+  new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size / img.width, size / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not read that image.'));
+    };
+    img.src = url;
+  });
 
 const initialsOf = (user) =>
   (user?.instituteName || user?.name || '?')
@@ -29,6 +56,8 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const fileRef = useRef(null);
 
   const load = useCallback(async () => {
     try {
@@ -51,6 +80,70 @@ const Profile = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Push a fresh user record into local state and the sidebar's cached copy,
+  // then nudge the sidebar to re-read it.
+  const applyUser = useCallback((updated) => {
+    setUser(updated);
+    const cached = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    localStorage.setItem(
+      'userInfo',
+      JSON.stringify({
+        ...cached,
+        name: updated.name,
+        email: updated.email,
+        instituteName: updated.instituteName,
+        avatar: updated.avatar || '',
+      })
+    );
+    window.dispatchEvent(new Event('userinfo-changed'));
+  }, []);
+
+  const handleAvatarPick = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setError('Please choose a PNG, JPG or WebP image.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('That image is too large. Please choose one under 10 MB.');
+      return;
+    }
+
+    setError('');
+    setNotice('');
+    setAvatarBusy(true);
+    try {
+      const dataUrl = await resizeImage(file);
+      const { data } = await api.put('/api/user', { avatar: dataUrl });
+      applyUser(data.user || { ...user, avatar: dataUrl });
+      setNotice('Profile photo updated.');
+    } catch (err) {
+      console.error('Error uploading profile photo:', err);
+      setError(err.response?.data?.error || 'Could not upload that photo. Please try again.');
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
+  const removeAvatar = async () => {
+    setError('');
+    setNotice('');
+    setAvatarBusy(true);
+    try {
+      const { data } = await api.put('/api/user', { avatar: '' });
+      applyUser(data.user || { ...user, avatar: '' });
+      setNotice('Profile photo removed.');
+    } catch (err) {
+      console.error('Error removing profile photo:', err);
+      setError(err.response?.data?.error || 'Could not remove that photo. Please try again.');
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
 
   // Enables/disables Save, and drives the Discard button.
   const dirty = useMemo(() => {
@@ -86,18 +179,7 @@ const Profile = () => {
     setSaving(true);
     try {
       const { data } = await api.put('/api/user', form);
-      const updated = data.user || { ...user, ...form };
-      setUser(updated);
-
-      // The sidebar reads the cached copy, so keep it in step and tell it to
-      // re-read — otherwise the old name sits there until the next reload.
-      const cached = JSON.parse(localStorage.getItem('userInfo') || '{}');
-      localStorage.setItem(
-        'userInfo',
-        JSON.stringify({ ...cached, name: updated.name, email: updated.email, instituteName: updated.instituteName })
-      );
-      window.dispatchEvent(new Event('userinfo-changed'));
-
+      applyUser(data.user || { ...user, ...form });
       setNotice(data.message || 'Profile updated.');
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -140,11 +222,44 @@ const Profile = () => {
 
       {/* Identity */}
       <section className="pro-card pro-identity">
-        {user.avatar ? (
-          <img src={user.avatar} alt="" className="pro-avatar" />
-        ) : (
-          <span className="pro-avatar pro-avatar--initials">{initialsOf(user)}</span>
-        )}
+        <div className="pro-avatar-edit">
+          <div className="pro-avatar-frame">
+            {user.avatar ? (
+              <img src={user.avatar} alt="" className="pro-avatar" />
+            ) : (
+              <span className="pro-avatar pro-avatar--initials">{initialsOf(user)}</span>
+            )}
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              hidden
+              onChange={handleAvatarPick}
+            />
+            <button
+              type="button"
+              className="pro-avatar-cam"
+              onClick={() => fileRef.current?.click()}
+              disabled={avatarBusy}
+              aria-label={user.avatar ? 'Change photo' : 'Add photo'}
+              title={user.avatar ? 'Change photo' : 'Add photo'}
+            >
+              <Camera size={13} strokeWidth={2} />
+            </button>
+          </div>
+
+          {user.avatar && (
+            <button
+              type="button"
+              className="pro-avatar-remove"
+              onClick={removeAvatar}
+              disabled={avatarBusy}
+            >
+              {avatarBusy ? 'Working…' : 'Remove'}
+            </button>
+          )}
+        </div>
 
         <div className="pro-identity-text">
           <h2>{user.name || 'Unnamed account'}</h2>

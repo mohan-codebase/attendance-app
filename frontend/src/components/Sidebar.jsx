@@ -319,8 +319,8 @@ const Sidebar = ({ setIsAuthenticated }) => {
               )}
               {showLabels && (
                 <div className="sidebar-account-text">
-                  <span className="sidebar-account-email">{user.email}</span>
-                  <span className="sidebar-account-org">{user.instituteName || user.name}</span>
+                  <span className="sidebar-account-name">{user.name || 'My account'}</span>
+                  <span className="sidebar-account-org">{user.instituteName || user.email}</span>
                 </div>
               )}
             </Link>

@@ -520,66 +520,6 @@ body[data-sidebar='collapsed'] .main-content.with-sidebar {
 [data-theme='light'] ::placeholder {
   color: #6c757d;
 }
-
-/* ===== react-calendar (Report page) ===== */
-
-.react-calendar {
-  background-color: var(--surface-color);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-}
-
-.react-calendar__navigation button {
-  background-color: transparent;
-  color: var(--text-color);
-}
-
-.react-calendar__navigation button:enabled:hover,
-.react-calendar__navigation button:enabled:focus {
-  background-color: var(--day-hover-background-color);
-}
-
-.react-calendar__navigation button:disabled {
-  background-color: transparent;
-  color: var(--off-range-text-color);
-}
-
-.react-calendar__month-view__weekdays__weekday abbr {
-  color: var(--text-muted-color);
-  text-decoration: none;
-}
-
-.react-calendar__tile {
-  background-color: transparent;
-  color: var(--text-color);
-}
-
-.react-calendar__tile:enabled:hover,
-.react-calendar__tile:enabled:focus {
-  background-color: var(--day-hover-background-color);
-}
-
-.react-calendar__month-view__days__day--neighboringMonth {
-  color: var(--off-range-text-color);
-}
-
-.react-calendar__tile--now {
-  background-color: var(--today-background-color);
-  color: var(--today-text-color);
-}
-
-.react-calendar__tile--active {
-  background-color: var(--primary-color);
-  color: var(--primary-text-color);
-}
-
-/* The present/absent day markers must still win over the tile colors above */
-.react-calendar__tile.present,
-.react-calendar__tile.absent {
-  color: #ffffff !important;
-}
-
 /* ===== react-big-calendar (Calendar page) ===== */
 
 .rbc-calendar {
@@ -977,7 +917,7 @@ table,
     margin: 0.5rem;
   }
 
-  /* Native modals (Model.jsx) are absolutely placed — keep them off the edges */
+  /* Toast modals (Modal.jsx) are absolutely placed — keep them off the edges */
   .modal .modal-body {
     padding: 0.875rem 1rem;
   }

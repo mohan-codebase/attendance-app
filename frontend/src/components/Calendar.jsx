@@ -8,7 +8,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Modal as BsModal, Button, Badge } from 'react-bootstrap';
-import Model from './Model';
+import NotificationModal from './Modal';
 import '../css/Calendar.css';
 
 const localizer = momentLocalizer(moment);
@@ -375,8 +375,8 @@ const Calendar = () => {
         </BsModal.Body>
       </BsModal>
 
-      {/* Success Modal using Model.jsx */}
-      <Model 
+      {/* Success notification popup */}
+      <NotificationModal 
         show={showModel} 
         message={successMessage} 
         onClose={() => setShowModel(false)} 

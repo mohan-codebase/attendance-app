@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
-import Modal from './Model'; // Import the Modal component
+import Modal from './Modal';
 import GoogleAuthButton from './GoogleAuthButton';
 import { BrandLogo } from './Brand';
 import person1 from '../img/character-1.png'; // Person 1
 import person2 from '../img/character-2.png'; // Person 2
 import '../css/Login.css'; // Import the Login.css file
-import Vector from '../img/Vector.png';
 
 const Login = ({ setIsAuthenticated }) => {
     const [formData, setFormData] = useState({

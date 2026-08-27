@@ -3,9 +3,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link } from 'react-router-dom';
 import  amico  from '../img/amico.png';
 import { BrandLogo } from './Brand';
-import '../css/Startingpage.css';
+import '../css/StartingPage.css';
 
-export const Startingpage = () => {
+export const StartingPage = () => {
   return (
     <div className="container-fluid start-page d-flex flex-column">
       {/* Navbar */}
@@ -42,4 +42,4 @@ export const Startingpage = () => {
   );
 }
 
-export default Startingpage;
+export default StartingPage;

@@ -3,7 +3,7 @@
   "name": "PresentSir — Attendance Management",
   "icons": [
     {
-      "src": "fav-icon.svg",
+      "src": "favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     },

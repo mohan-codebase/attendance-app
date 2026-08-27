@@ -1,20 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import system from "../img/system.png";
 import light from "../img/light.png";
 import dark from "../img/dark.png";
-import settings from '../img/Settings.png';
-import '../css/Setting.css';
+import settings from '../img/settings.png';
+import '../css/Settings.css';
 
 const Settings = ({ theme, setTheme }) => {
   // Driven by App's state rather than a local copy, so the picker stays in step
   // with the floating theme toggle.
   const localTheme = theme || localStorage.getItem('preferredTheme') || "system";
-  const [studentNotification, setStudentNotification] = useState("");
-  const [studentTime, setStudentTime] = useState(0);
-  const [systemNotifications, setSystemNotifications] = useState(true);
-  const [systemTime, setSystemTime] = useState(0);
+
   const handleThemeChange = (mode) => {
     setTheme(mode);
     localStorage.setItem('preferredTheme', mode);
@@ -68,56 +65,6 @@ const Settings = ({ theme, setTheme }) => {
         </p>
         <Link to="/profile" className="btn btn-outline-primary px-4">Go to profile</Link>
       </div>
-
-      {/* Student Notifications */}
-      <div className="mb-4" style={{ maxWidth: '600px' }}>
-        <h4 className="inter mb-3">Student Notifications</h4>
-        <input
-          type="text"
-          placeholder="Type notification broadcast message"
-          className="student form-control mb-3 p-2"
-          value={studentNotification}
-          onChange={(e) => setStudentNotification(e.target.value)}
-        />
-        <label className="time">Notify minutes before class: {studentTime}m</label>
-        <input
-          type="range"
-          min="-60"
-          max="60"
-          step="10"
-          value={studentTime}
-          onChange={(e) => setStudentTime(Number(e.target.value))}
-          className="range form-range mt-2"
-        />
-      </div>
-
-      {/* System Notifications */}
-      <div className="mb-4" style={{ maxWidth: '600px' }}>
-        <h4 className="inter mb-3">System Notifications</h4>
-        <div className="check form-check form-switch mb-2">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="systemNotifSwitch"
-            checked={systemNotifications}
-            onChange={() => setSystemNotifications(!systemNotifications)}
-          />
-          <label className="form-check-label ms-2" htmlFor="systemNotifSwitch">
-            {systemNotifications ? 'Enabled' : 'Disabled'}
-          </label>
-        </div>
-        <label className="time">System reminder interval: {systemTime}m</label>
-        <input
-          type="range"
-          min="-60"
-          max="60"
-          step="10"
-          value={systemTime}
-          onChange={(e) => setSystemTime(Number(e.target.value))}
-          className="range form-range mt-2"
-        />
-      </div>
-
     </div>
   );
 };

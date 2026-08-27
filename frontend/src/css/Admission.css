@@ -2,16 +2,6 @@
    Add Admission
    =========================== */
 
-/* The modal is a dark charcoal sheet in both themes, as designed — it reads as
-   a raised surface over the light page and over the dark one. */
-.adm-surface {
-  --adm-surface: #3d3f42;
-  --adm-input: #313336;
-  --adm-border: #4c4f53;
-  --adm-text: #f2f3f4;
-  --adm-muted: #9ea3a9;
-}
-
 .adm-page {
   padding: 40px 20px;
   text-align: center;
@@ -33,10 +23,13 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(164, 94, 229, 0.25);
+  transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
 .adm-open-btn:hover {
   background-color: var(--button-hover-background-color);
+  transform: translateY(-1px);
 }
 
 /* --- Modal shell --- */
@@ -44,42 +37,82 @@
   max-width: 620px;
 }
 
-/* contentClassName target — overrides Bootstrap's .modal-content */
+/* contentClassName target — inherits design tokens for active theme */
 .modal-content.adm-content {
-  --adm-surface: #3d3f42;
-  --adm-input: #313336;
-  --adm-border: #4c4f53;
-  --adm-text: #f2f3f4;
-  --adm-muted: #9ea3a9;
+  --adm-surface: var(--surface-color);
+  --adm-input: var(--input-background-color);
+  --adm-border: var(--border-color);
+  --adm-text: var(--text-color);
+  --adm-muted: var(--text-muted-color);
 
-  border: none;
-  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
   overflow: hidden;
   background-color: var(--adm-surface);
   color: var(--adm-text);
-  /* The form is taller than a short viewport, so scroll inside the sheet
-     rather than letting the submit button fall off the screen. */
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  /* Scroll inside the sheet on short viewports */
   max-height: 92vh;
-  /* dvh keeps the sheet clear of a mobile browser's collapsing toolbars */
   max-height: 92dvh;
 }
 
-/* --- Cover banner --- */
-/* Stand-in for the cloud artwork: layered soft puffs over a purple sky.
-   Swap in a real image with `background-image: url(...)` when you have one. */
-.adm-cover {
-  height: 132px;
-  background-image:
-    radial-gradient(ellipse 13% 30% at 12% 82%, #ffffff 0%, #ffffff 48%, rgba(255, 255, 255, 0) 72%),
-    radial-gradient(ellipse 17% 38% at 24% 90%, #ffffff 0%, #ffffff 52%, rgba(255, 255, 255, 0) 74%),
-    radial-gradient(ellipse 11% 26% at 36% 78%, #ffffff 0%, #ffffff 46%, rgba(255, 255, 255, 0) 72%),
-    radial-gradient(ellipse 19% 40% at 50% 92%, #ffffff 0%, #ffffff 54%, rgba(255, 255, 255, 0) 74%),
-    radial-gradient(ellipse 12% 28% at 63% 80%, #ffffff 0%, #ffffff 48%, rgba(255, 255, 255, 0) 72%),
-    radial-gradient(ellipse 16% 36% at 76% 90%, #ffffff 0%, #ffffff 52%, rgba(255, 255, 255, 0) 74%),
-    radial-gradient(ellipse 10% 24% at 88% 76%, #ffffff 0%, #ffffff 46%, rgba(255, 255, 255, 0) 72%),
-    radial-gradient(ellipse 15% 34% at 97% 88%, #ffffff 0%, #ffffff 50%, rgba(255, 255, 255, 0) 74%),
-    linear-gradient(180deg, #9866cf 0%, #b184dd 34%, #cfa9ea 62%, #e8d4f4 100%);
-  flex-shrink: 0;
+[data-theme='dark'] .modal-content.adm-content {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+/* --- Header --- */
+.adm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px 18px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--surface-color);
+}
+
+.adm-header-title h3 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-color);
+  letter-spacing: -0.01em;
+}
+
+.adm-header-title p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: var(--text-muted-color);
+}
+
+.adm-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background-color: var(--day-hover-background-color);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.1s ease;
+}
+
+.adm-close-btn:hover {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--primary-text-color);
+}
+
+.adm-close-btn:active {
+  transform: scale(0.95);
+}
+
+.adm-close-btn:focus-visible {
+  outline: none;
+  border-color: var(--input-focus-border-color);
+  box-shadow: 0 0 0 0.2rem var(--input-focus-shadow-color);
 }
 
 /* --- Body --- */
@@ -93,9 +126,15 @@
   margin: 0 0 16px;
   padding: 10px 14px;
   border-radius: 8px;
-  background-color: rgba(229, 72, 77, 0.16);
-  color: #ff8f93;
+  background-color: rgba(229, 72, 77, 0.14);
+  color: #e5484d;
   font-size: 13px;
+  border: 1px solid rgba(229, 72, 77, 0.25);
+}
+
+[data-theme='dark'] .adm-alert {
+  background-color: rgba(229, 72, 77, 0.18);
+  color: #ff8f93;
 }
 
 .adm-grid {
@@ -117,7 +156,7 @@
 
 .adm-label {
   margin-bottom: 7px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--adm-text);
 }
@@ -126,12 +165,12 @@
   width: 100%;
   padding: 10px 13px;
   border: 1px solid var(--adm-border);
-  border-radius: 8px;
+  border-radius: 9px;
   background-color: var(--adm-input);
   color: var(--adm-text);
   font-size: 13.5px;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
 .adm-input::placeholder {
@@ -147,25 +186,33 @@
   border-color: #e5484d;
 }
 
-/* Native select arrow replaced so it matches the dark sheet */
+/* Native select arrow styled for theme */
 .adm-select {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 34px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ea3a9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   cursor: pointer;
 }
 
+[data-theme='dark'] .adm-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a8aeb5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
 .adm-select option {
-  background-color: var(--adm-input);
+  background-color: var(--adm-surface);
   color: var(--adm-text);
 }
 
 .adm-error {
   margin: 5px 0 0;
   font-size: 12px;
+  color: #e5484d;
+}
+
+[data-theme='dark'] .adm-error {
   color: #ff8f93;
 }
 
@@ -186,7 +233,7 @@
   width: 100%;
   padding: 10px 38px 10px 13px;
   border: 1px solid var(--adm-border);
-  border-radius: 8px;
+  border-radius: 9px;
   background-color: var(--adm-input);
   color: var(--adm-text);
   font-size: 13.5px;
@@ -217,17 +264,24 @@
   margin: 26px auto 0;
   padding: 13px 20px;
   border: none;
-  border-radius: 9px;
+  border-radius: 10px;
   background-color: var(--primary-color);
   color: var(--primary-text-color);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 10px rgba(164, 94, 229, 0.3);
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 }
 
 .adm-submit:hover:not(:disabled) {
   background-color: var(--button-hover-background-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(164, 94, 229, 0.4);
+}
+
+.adm-submit:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .adm-submit:disabled {
